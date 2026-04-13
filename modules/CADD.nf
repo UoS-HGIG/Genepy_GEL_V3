@@ -4,12 +4,12 @@ process CADD_score {
   publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
   maxForks 20
   input:
-  tuple(shard_num, subshard_num, chr_name, vcf_file, file(gnomad_joint_vcf),file(params.annotations_cadd))
+  tuple(shard_num, subshard_num, chr_name, vcf_file,file(params.annotations_cadd))
   // tuple val(shard_num), val(subshard_num), val (chr),  path(vcfFile), path(gnomad_joint_vcf), path(cadd_)
       
   //val cadd_param = params.cadd_
   output:
-  tuple val(shard_num), path("p1.vcf"), path("wes_${subshard_num}.tsv.gz"), path("wes_${subshard_num}.tsv.gz.tbi"), val(subshard_num), path(vcfFile),file(gnomad_joint_vcf), emit: pre_proc_1
+  tuple val(shard_num), path("p1.vcf"), path("wes_${subshard_num}.tsv.gz"), path("wes_${subshard_num}.tsv.gz.tbi"), val(subshard_num), path(vcfFile), emit: pre_proc_1
   path("${subshard_num}.p11.vcf")
   // path("f3b.vcf")
   script:
