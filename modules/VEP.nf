@@ -5,7 +5,7 @@ process VEP_score {
   label "VEP_score"
   
   input:
-  tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile),path(gnomad_joint_vcf)
+  tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile)
   path(homos_vep)
   path(vep_plugins)
   path(plugin1)
