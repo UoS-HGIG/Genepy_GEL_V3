@@ -16,7 +16,7 @@ process Pre_processing_1 {
   
   shell:
     """
-#### add cadd filteration >=15
+#### add cadd filteration >=15  and make sure datframe is correct ( do we need normalization or nor)
     gunzip -c "input.vcf.gz" | grep -v '##'|cut -f 9-> p2
     grep -v '##' ${x} > p1
     grep '##' ${x} > f31.vcf
