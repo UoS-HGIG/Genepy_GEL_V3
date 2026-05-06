@@ -16,6 +16,7 @@ process Pre_processing_1 {
   
   shell:
     """
+#### add cadd filteration >=15
     gunzip -c "input.vcf.gz" | grep -v '##'|cut -f 9-> p2
     grep -v '##' ${x} > p1
     grep '##' ${x} > f31.vcf
@@ -33,6 +34,7 @@ process Pre_processing_1 {
     ##tabix -p vcf f3b.vcf.gz
 
     cat ${ethnicity} > ethnicity.txt
+##### we have f_missing and hwe there , also we need to add median GQ filteration
     bcftools +fill-tags f3.vcf --threads $task.cpus -- -S ethnicity.txt -t 'HWE,F_MISSING' | bcftools view -e '(CHROM=="chrY" & INFO/F_MISSING>=0.56 & INFO/HWE_1>(0.05/15922704))' --threads $task.cpus -Ov -o f4.vcf 
     bcftools view -i 'INFO/F_MISSING<0.12 & INFO/HWE_1>(0.05/15922704)' --threads $task.cpus -Oz -o f5.vcf.gz f4.vcf
 
