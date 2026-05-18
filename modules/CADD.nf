@@ -28,8 +28,9 @@ process CADD_score {
       { sub(/^chr/, "", \$1); print }
       ' p1.vcf  > "${subshard_num}.p11.vcf"
 
-    CADD.sh -c $task.cpus -o wes_${subshard_num}.tsv.gz ${subshard_num}.p11.vcf
-    
+    CADD.sh -c $task.cpus -o wes_${subshard_num}.raw.tsv.gz ${subshard_num}.p11.vcf
+    ### CADD TSV columns: Chrom, Pos, Ref, Alt, RawScore, PHRED (col 6)
+    ## zcat wes_${subshard_num}.raw.tsv.gz | awk -F"\t" 'NR<=2 || \$1 ~ /^#/ || \$6 >= 15' | bgzip -c > wes_${subshard_num}.tsv.gz
     tabix -p vcf wes_${subshard_num}.tsv.gz  
     """
 }
