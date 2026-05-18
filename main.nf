@@ -10,7 +10,7 @@ nextflow.enable.dsl=2
 
 // Check input path parameters to see if they exist
 def checkPathParamList = [ 
-    params.vcf
+    params.shard_path
 ]
  
 include { CADD_score } from "./modules/CADD"  
@@ -33,8 +33,7 @@ workflow {
                          UoS
                      Iman Nazari
           ===================================
-         Samples         : ${params.vcf}
-         params.cadd     : ${params.annotations_cadd}
+          Samples         : ${params.shard_path}
          """.stripIndent()
      
         def shard_dir_name = file(params.shard_path).name
@@ -60,21 +59,18 @@ workflow {
             }   
 
         chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
-        .take(3)
+        .take(10)
         .map { vcf_file->
-            def shard_num       = params.shard_number.toString()
-            def subshard_number = f.parent.name.replace('subshard-', '')
-            def vcf_n = "subshard-${subshard_number}"
+            def shard_num       = shard_number.toString()
+            def subshard_number = vcf_file.parent.name.replace('subshard-', '')
             def chr_name        = shard_map["${shard_num}_${subshard_number}"]
             if( !chr_name ) {
-                throw new IllegalArgumentException("No chromosome mapping found for shard=${shard_num}, subshard=${subshard_num}")
+                throw new IllegalArgumentException("No chromosome mapping found for shard=${shard_num}, subshard=${subshard_number}")
             }
 
             // def gnomad_joint_vcf = "${params.gnomad_joint_dir}/${chr_name}.joint.vcf.gz"
-            def vcf_n = "Shard_${shard_num}_Subshard_${subshard_num}"
-
-            tuple(shard_num, subshard_num, chr_name, vcf_file,file(params.annotations_cadd))
-        }
+            tuple(shard_num, subshard_number, chr_name, vcf_file,file(params.annotations_cadd))
+        }.view()
   //          tuple(shard_num, vcf_n, f, file(params.annotations_cadd))
   //      }
       CADD_score(chrx)
@@ -157,8 +153,6 @@ workflow.onComplete {
        """
    )
 }
-
-
 
 
 
