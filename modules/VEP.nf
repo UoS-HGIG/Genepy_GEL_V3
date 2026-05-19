@@ -23,8 +23,10 @@ process VEP_score {
 ##recommend
     vep -i "p1.vcf" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --plugin CADD,${plugin1},${plugin2},"wes.tsv.gz" --af_gnomade --af_gnomadg --fields "Allele,Consequence,SYMBOL,Gene,gnomADg_AF,gnomADe_AF,CADD_RAW" -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
 ##vep -i "p1.vcf" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --plugin CADD,${plugin1},${plugin2},"wes.tsv.gz" --af_gnomade --af_gnomadg --max_af  --fields "Allele,Consequence,SYMBOL,Gene,gnomADg_AF,gnomADg_NFE_AF,gnomADe_AF,gnomADe_NFE_AF,MAX_AF,MAX_AF_POPS,CADD_RAW,CADD_PHRED" -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
+    bgzip -k "${subshard_num}.p1.vep.vcf"
+    tabix -p vcf "${subshard_num}.p1.vep.vcf.gz"
     tabix -p vcf "${vcfFile}"
-    bcftools isec -n=2 -w1 -Oz -o "${subshard_num}.full_cadd15.vcf.gz" ${vcfFile} "${subshard_num}.p1.vep.vcf"
+    bcftools isec -n=2 -w1 -Oz -o "${subshard_num}.full_cadd15.vcf.gz" ${vcfFile} "${subshard_num}.p1.vep.vcf.gz"
 
     tabix -p vcf "${subshard_num}.full_cadd15.vcf.gz"
     """
