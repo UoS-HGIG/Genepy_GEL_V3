@@ -9,7 +9,7 @@ process CADD_score {
       
   //val cadd_param = params.cadd_
   output:
-  tuple val(shard_num), path("p1.bi.vcf.gz"), path("wes_${subshard_num}.raw.tsv.gz"), path("wes_${subshard_num}.raw.tsv.gz.tbi"), val(subshard_num), path(vcf_File), emit: pre_proc_1
+  tuple val(shard_num), path("p1.cadd15.vcf.gz"), path("wes_${subshard_num}.raw.tsv.gz"), path("wes_${subshard_num}.raw.tsv.gz.tbi"), val(subshard_num), path(vcf_File), emit: pre_proc_1
   path("${subshard_num}.p11.vcf")
   // path("f3b.vcf")
   script:
@@ -31,12 +31,11 @@ process CADD_score {
     CADD.sh -c $task.cpus -o wes_${subshard_num}.raw.tsv.gz ${subshard_num}.p11.vcf
     tabix -p vcf wes_${subshard_num}.raw.tsv.gz
     ### CADD TSV columns: Chrom, Pos, Ref, Alt, RawScore, PHRED (col 6)
-    zcat wes_${subshard_num}.raw.tsv.gz | awk 'NR>2 && \$1 !~ /^#/ {print "chr"\$1"\t"\$2}' > cadd15_regions.txt
-    bgzip -c p1.vcf > p1.bi.vcf.gz 
-    tabix -p vcf p1.bi.vcf.gz
-    bcftools norm -m -both -Oz -o p1.bi.vcf.gz p1.vcf.gz
+    
+    zcat wes_${subshard_num}.raw.tsv.gz | awk 'NR>2 && \$1 !~ /^#/ && \$6 >= 15 {print "chr"\$1"\t"\$2}' > cadd15_regions.txt
+    bcftools norm -m -both -Oz -o p1.bi.vcf.gz p1.vcf 
     tabix -p vcf p1.bi.vcf.gz
     bcftools view -R cadd15_regions.txt -Oz -o p1.cadd15.vcf.gz p1.bi.vcf.gz
-      
+    tabix -p vcf p1.cadd15.vcf.gz
     """
 }
