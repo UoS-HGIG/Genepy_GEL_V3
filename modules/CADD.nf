@@ -28,7 +28,7 @@ process CADD_score {
       { sub(/^chr/, "", \$1); print }
       ' p1.vcf  > "${subshard_num}.p11.vcf"
     bcftools view -v indels -O z -o "${subshard_num}_indels.p11.vcf" "${subshard_num}.p11.vcf"
-    bcftools index -t "${subshard_num}_indels.p11.vcf"
+    tabix -p vcf "${subshard_num}_indels.p11.vcf"
     CADD.sh -c $task.cpus -o wes_${subshard_num}.raw.tsv.gz "${subshard_num}_indels.p11.vcf"
     tabix -p vcf wes_${subshard_num}.raw.tsv.gz
     ### CADD TSV columns: Chrom, Pos, Ref, Alt, RawScore, PHRED (col 6)
