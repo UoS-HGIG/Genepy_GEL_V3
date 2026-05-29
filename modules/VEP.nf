@@ -14,30 +14,36 @@ process VEP_score {
   path(genomad_indx2)
   
   output:
-   tuple path("${subshard_num}.CADD15.p1.vep.vcf"), file(vcfFile), val(shard_num) ,emit: vep_out
+   tuple path("${subshard_num}.p1.vep.vcf.gz"), file(vcfFile), val(shard_num) ,emit: vep_out
    path("${subshard_num}.full_cadd15.vcf.gz")
   script:
   
   
     """
 ##recommend
-   echo "1"
-    vep -i "p1.vcf" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --plugin CADD,${plugin1},${plugin2},"wes.tsv.gz" --af_gnomade --af_gnomadg --fields "Allele,Consequence,SYMBOL,Gene,gnomADg_AF,gnomADe_AF,CADD_RAW" -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
+   echo "retain cadd>=15"
+   zcat "wes.tsv.gz" | awk -v OFS='\t' '
+NR==1 { print; next }
+\$0 !~ /^#/ && \$6 >= 15 { print }
+' | bgzip -c > "wes_cadd15.tsv.gz"
+
+
+    vep -i "p1.vcf" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --plugin CADD,${plugin1},${plugin2},"wes_cadd15.tsv.gz" --af_gnomade --af_gnomadg --fields "Allele,Consequence,SYMBOL,Gene,gnomADg_AF,gnomADe_AF,CADD_RAW" -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
 ##vep -i "p1.vcf" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --plugin CADD,${plugin1},${plugin2},"wes.tsv.gz" --af_gnomade --af_gnomadg --max_af  --fields "Allele,Consequence,SYMBOL,Gene,gnomADg_AF,gnomADg_NFE_AF,gnomADe_AF,gnomADe_NFE_AF,MAX_AF,MAX_AF_POPS,CADD_RAW,CADD_PHRED" -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
   echo "2" 
-  bcftools +split-vep \
-      -c "Allele,Consequence,SYMBOL,Gene,gnomADg_AF,gnomADg_NFE_AF,gnomADe_AF,gnomADe_NFE_AF,CADD_PHRED:Float,gnomadF_RF_flag" \
-      -s worst \
-      -i 'CADD_PHRED >= 15 || CADD_PHRED = "."' \
-      "${subshard_num}.p1.vep.vcf" \
-      -O z -o "${subshard_num}.CADD15.p1.vep.vcf"
+  ##bcftools +split-vep \
+  ##    -c "Allele,Consequence,SYMBOL,Gene,gnomADg_AF,gnomADg_NFE_AF,gnomADe_AF,gnomADe_NFE_AF,CADD_PHRED:Float,gnomadF_RF_flag" \
+   ##   -s worst \
+  ##    -i 'CADD_PHRED >= 15 || CADD_PHRED = "."' \
+  ##    "${subshard_num}.p1.vep.vcf" \
+  ##    -O z -o "${subshard_num}.CADD15.p1.vep.vcf"
 
   ## tabix -p vcf "${subshard_num}.CADD15.p1.vep.vcf"
-  bgzip -c ""${subshard_num}.CADD15.p1.vep.vcf" > "${subshard_num}.CADD15.p1.vep.vcf.gz"
-  tabix -p vcf "${subshard_num}.CADD15.p1.vep.vcf.gz"
+  bgzip -c "${subshard_num}.p1.vep.vcf" > "${subshard_num}.p1.vep.vcf.gz"
+  tabix -p vcf "${subshard_num}.p1.vep.vcf.gz"
   tabix -p vcf "${vcfFile}"
 echo "3"
-    bcftools isec -n=2 -w1 -c both -Oz  -o "${subshard_num}.full_cadd15.vcf.gz" ${vcfFile} "${subshard_num}.CADD15.p1.vep.vcf.gz"
+    bcftools isec -n=2 -w1 -c both -Oz  -o "${subshard_num}.full_cadd15.vcf.gz" ${vcfFile}  "${subshard_num}.p1.vep.vcf.gz"
 
     tabix -p vcf "${subshard_num}.full_cadd15.vcf.gz"
     """
