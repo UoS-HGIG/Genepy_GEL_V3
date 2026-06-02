@@ -24,7 +24,7 @@ process VEP_score {
    echo "filter we"
    zcat "wes.tsv.gz" | awk -v OFS='\t' '
 NR==1 { print; next }
-\$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }' | sort -k1,1 -k2,2n | bgzip -c > "wes_cadd15.bed.gz"
+\$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2, \$2 }' | sort -k1,1 -k2,2n | bgzip -c > "wes_cadd15.bed.gz"
 tabix -s1 -b2 -e2 "wes_cadd15.bed.gz"
 echo "filter WG.tsv.gz"
 zcat ${plugin2} | awk '!/^#/ && \$6 >= 15 {print "chr"\$1"\t"\$2"\t"\$2}'| sort -k1,1 -k2,2n | bgzip > "cadd15_regions.bed.gz"
@@ -40,7 +40,7 @@ bcftools view -R "combined.bed" -O z -o "filtered_cadd15.vcf.gz" "p1.vcf.gz"
 tabix -p vcf "filtered_cadd15.vcf.gz"
 
 echo "VEP"
-    vep -i "filtered_cadd15.vcf.gz" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --plugin CADD,${plugin1},${plugin2},"wes_cadd15.tsv.gz" --af_gnomade --af_gnomadg --fields "Allele,Consequence,SYMBOL,Gene,gnomADg_AF,gnomADe_AF,CADD_PHRED" -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
+    vep -i "filtered_cadd15.vcf.gz" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --plugin CADD,${plugin1},${plugin2},"wes.tsv.gz" --af_gnomade --af_gnomadg --fields "Allele,Consequence,SYMBOL,Gene,gnomADg_AF,gnomADe_AF,CADD_PHRED" -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
 ##vep -i "p1.vcf" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --plugin CADD,${plugin1},${plugin2},"wes.tsv.gz" --af_gnomade --af_gnomadg --max_af  --fields "Allele,Consequence,SYMBOL,Gene,gnomADg_AF,gnomADg_NFE_AF,gnomADe_AF,gnomADe_NFE_AF,MAX_AF,MAX_AF_POPS,CADD_RAW,CADD_PHRED" -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
   echo "2" 
  ## bcftools +split-vep \
