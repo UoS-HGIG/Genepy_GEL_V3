@@ -24,16 +24,19 @@ process VEP_score {
    echo "filter we"
    zcat "wes.tsv.gz" | awk -v OFS='\t' '
 NR==1 { print; next }
-\$0 !~ /^#/ && \$6 >= 15 { print }
-' | bgzip -c > "wes_cadd15.tsv.gz"
-tabix -p vcf "wes_cadd15.tsv.gz"
+\$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }' | sort -k1,1 -k2,2n | bgzip -c > "wes_cadd15.bed.gz"
+tabix -s1 -b2 -e2 "wes_cadd15.bed.gz"
 echo "filter WG.tsv.gz"
 zcat ${plugin2} | awk '!/^#/ && \$6 >= 15 {print "chr"\$1"\t"\$2"\t"\$2}'| sort -k1,1 -k2,2n | bgzip > "cadd15_regions.bed.gz"
 tabix -s1 -b2 -e2 "cadd15_regions.bed.gz"
+zcat "wes_cadd15.bed.gz""cadd15_regions.bed.gz" \
+  | sort -k1,1 -k2,2n -k3,3n \
+  > "combined.bed"
+
 bgzip -c "p1.vcf" > "p1.vcf.gz"
 tabix -p vcf "p1.vcf.gz"
 echo "intersect p1 & WG"
-bcftools view -R "cadd15_regions.bed.gz" -O z -o "filtered_cadd15.vcf.gz" "p1.vcf.gz"
+bcftools view -R "combined.bed" -O z -o "filtered_cadd15.vcf.gz" "p1.vcf.gz"
 tabix -p vcf "filtered_cadd15.vcf.gz"
 
 echo "VEP"
