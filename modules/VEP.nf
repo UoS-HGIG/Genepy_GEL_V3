@@ -26,6 +26,7 @@ process VEP_score {
 NR==1 { print; next }
 \$0 !~ /^#/ && \$6 >= 15 { print }
 ' | bgzip -c > "wes_cadd15.tsv.gz"
+tabix -p vcf "wes_cadd15.tsv.gz"
 echo "filter WG.tsv.gz"
 zcat ${plugin2} | awk '!/^#/ && \$6 >= 15 {print "chr"\$1"\t"\$2"\t"\$2}'| sort -k1,1 -k2,2n | bgzip > "cadd15_regions.bed.gz"
 tabix -s1 -b2 -e2 "cadd15_regions.bed.gz"
