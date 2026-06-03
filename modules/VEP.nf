@@ -23,11 +23,11 @@ process VEP_score {
 ##recommend
    echo "filter we"
    zcat "wes.tsv.gz" | awk -v OFS='\t' '
-NR==1 { print; next }
-\$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2, \$2 }' | sort -k1,1 -k2,2n | bgzip -c > "wes_cadd15.bed.gz"
+\$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }' | sort -k1,1 -k2,2n | bgzip -c > "wes_cadd15.bed.gz"
 tabix -s1 -b2 -e2 "wes_cadd15.bed.gz"
 echo "filter WG.tsv.gz"
-zcat ${plugin2} | awk '!/^#/ && \$6 >= 15 {print "chr"\$1"\t"\$2"\t"\$2}'| sort -k1,1 -k2,2n | bgzip > "cadd15_regions.bed.gz"
+zcat ${plugin2} | awk -v OFS='\t' '
+\$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }'| sort -k1,1 -k2,2n | bgzip > "cadd15_regions.bed.gz"
 tabix -s1 -b2 -e2 "cadd15_regions.bed.gz"
 zcat "wes_cadd15.bed.gz" "cadd15_regions.bed.gz" \
   | sort -k1,1 -k2,2n -k3,3n \
