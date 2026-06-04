@@ -14,7 +14,7 @@ process VEP_score {
   path(genomad_indx2)
   
   output:
-   tuple path("${subshard_num}.p1.vep.vcf.gz"), file(vcfFile), val(shard_num) ,emit: vep_out
+   tuple path("${subshard_num}.p1.vep.vcf.gz"), file(vcfFile), val(shard_num),val(subshard_num) ,emit: vep_out
    path("${subshard_num}.full_cadd15.vcf.gz")
   script:
   
