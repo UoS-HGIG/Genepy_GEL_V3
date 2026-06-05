@@ -5,9 +5,8 @@ process Pre_processing_1 {
   label "Pre_processing_1"
   
   input:
-  tuple path(x), val(vcf_n), path(vcfFile), val(chrx),path("input.vcf.gz")
-  path(ethnicity)
-  path(xgen_bed)
+  tuple path("full_cadd15.vcf.gz"), val(shard_num),val(subshard_num)
+  path("vep_out")
   output:
   tuple path("f5.vcf.gz"), val(vcf_n), val(chrx), emit:main
   path("*.vcf.gz")
@@ -29,31 +28,29 @@ process Pre_processing_1 {
 ##after this is genotype-based quality control
 #bcftools filter -S . --include '(FORMAT/DP>=8 & FORMAT/AB>=0.15) |FORMAT/GT="0/0" | FORMAT/GT="0"'  --threads $task.cpus -Oz -o pass_variants_filtered.vcf.gz f3.vcf.gz
 ########End of QC and variant filtration for pre-processing########
+bcftools query "${params.base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM:%POS:%REF:%ALT\n' > siteqc_pass_variants.tsv
 
-    gunzip -c "input.vcf.gz" | grep -v '##'|cut -f 9-> p2
-    grep -v '##' ${x} > p1
-    grep '##' ${x} > f31.vcf
-    paste p1 p2 >> f31.vcf
-    rm -r p1 p2
-    awk -F"\t" '\$7~/PASS/ || \$1~/#/' f31.vcf > f3.vcf
-    bcftools view -h  "input.vcf.gz" --threads $task.cpus | grep '^##FORMAT=' > format.txt
-    sed -i '1 r format.txt' f3.vcf
-    #####
-    ##bcftools +fill-tags f3.vcf --threads $task.cpus -- -t 'FORMAT/AB:1=float((AD[:1]) / (DP))' | bgzip -c > f3.vcf.gz
-    ##rm f3.vcf
-    ##tabix -p vcf f3.vcf.gz
-    ##bcftools filter -S . --include '(FORMAT/DP>=8 & FORMAT/AB>=0.15) |FORMAT/GT="0/0" | FORMAT/GT="0"'  --threads $task.cpus -Oz -o f3b.vcf.gz f3.vcf.gz
-    ### bcftools filter -S . --include 'FORMAT/DP>=8 & FORMAT/AB>=0.15 |FORMAT/GT="0/0"'  --threads $task.cpus -Oz -o f3b.vcf.gz f3.vcf.gz
-    ##tabix -p vcf f3b.vcf.gz
+cat > tmp.vcf <<'EOF'
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+EOF
 
-    cat ${ethnicity} > ethnicity.txt
-##### we have f_missing and hwe there , also we need to add median GQ filteration
-    bcftools +fill-tags f3.vcf --threads $task.cpus -- -S ethnicity.txt -t 'HWE,F_MISSING' | bcftools view -e '(CHROM=="chrY" & INFO/F_MISSING>=0.56 & INFO/HWE_1>(0.05/15922704))' --threads $task.cpus -Ov -o f4.vcf 
-    bcftools view -i 'INFO/F_MISSING<0.12 & INFO/HWE_1>(0.05/15922704)' --threads $task.cpus -Oz -o f5.vcf.gz f4.vcf
+zcat "vep_out" | grep "#CHROM" >> tmp.vcf
 
-    tabix -p vcf f5.vcf.gz
-    
-    ##bcftools view f4.vcf.gz -R ${xgen_bed} --threads $task.cpus -Oz -o f5.vcf.gz
+awk -F':' 'BEGIN{OFS="\t"}
+NF>=4 {
+    print \$1, \$2, ".", \$3, \$4, ".", "PASS", "."
+}' siteqc_pass_variants.tsv >> tmp.vcf
+
+bgzip -f tmp.vcf
+tabix -f -p vcf tmp.vcf.gz
+
+bcftools isec -n=2 -w1 -Oz -o siteqc_pass_variants_filtered.vcf.gz "1.full_cadd15.vcf.gz" tmp.vcf.gz
+bcftools +fill-tags siteqc_pass_variants_filtered.vcf.gz -- -t 'FORMAT/AB:1=float((FORMAT/AD[:1]) / (FORMAT/DP))' | bgzip -c > f3_1.vcf.gz
+####
+
+bcftools filter -S . --include 'FORMAT/FT="PASS" && (FORMAT/DP>=8 & FORMAT/AB>=0.15) |FORMAT/GT="0/0" | FORMAT/GT="0"' -Oz -o f3.vcf.gz f3_1.vcf.gz
+   
     
     
     """
