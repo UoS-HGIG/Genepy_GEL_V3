@@ -49,7 +49,7 @@ bcftools isec -n=2 -w1 -Oz -o siteqc_pass_variants_filtered.vcf.gz "1.full_cadd1
 bcftools +fill-tags siteqc_pass_variants_filtered.vcf.gz -- -t 'FORMAT/AB:1=float((FORMAT/AD[:1]) / (FORMAT/DP))' | bgzip -c > f3_1.vcf.gz
 ####
 
-bcftools filter -S . --include 'FORMAT/FT="PASS" && (FORMAT/DP>=8 & FORMAT/AB>=0.15) |FORMAT/GT="0/0" | FORMAT/GT="0"' -Oz -o f3.vcf.gz f3_1.vcf.gz
+bcftools filter -S . --include 'FORMAT/FT="PASS" && (FORMAT/DP>=8 & FORMAT/AB>=0.15) |FORMAT/GT="0/0" | FORMAT/GT="0"' -Oz -o ${shard_num}_{subshard_num}_f3.vcf.gz f3_1.vcf.gz
    
     
     
