@@ -15,7 +15,7 @@ def checkPathParamList = [
  
 include { CADD_score } from "./modules/CADD"  
 include { VEP_score } from "./modules/VEP"  
-////include { Pre_processing_1 } from "./modules/Pre_pr1"  
+include { Pre_processing_1 } from "./modules/Pre_pr1"  
 ////include { Pre_processing_2 } from "./modules/Pre_pr2"  
 ////include { Pre_processing_3 } from "./modules/Pre_pr3"  
 ////include { Reatt_Genes } from "./modules/Gene_reattach"
