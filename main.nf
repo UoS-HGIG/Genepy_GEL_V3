@@ -75,7 +75,7 @@ workflow {
   //      }
       CADD_score(chrx)
       VEP_score(CADD_score.out.pre_proc_1,params.homos_vep,params.vep_plugins,params.plugin1,params.plugin2,params.genomad_indx1,params.genomad_indx2)
-      Pre_processing_1(VEP_score.out.vep_out,VEP_score.out.vep_out2,params.vep_site_qc)
+      Pre_processing_1(VEP_score.out.vep_out,VEP_score.out.vep_out2,params.base_site_qc)
 ////      Pre_processing_2(Pre_processing_1.out.main,params.header_meta,params.IBD_gwas_bed,params.Genecode_p50_bed,params.templates)
 ////      Pre_processing_3(Pre_processing_2.out.main,params.templates)     
 ////     // def meta15 = Pre_processing_3.out.meta_files15.collect().map { genes_list -> ["15",chromosomeList, genes_list] }
