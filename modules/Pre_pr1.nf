@@ -49,7 +49,7 @@ bcftools +fill-tags siteqc_pass_variants_filtered.vcf.gz -- -t 'FORMAT/AB:1=floa
 tabix -p vcf f3_1.vcf.gz
 ####
 echo "step5"
-bcftools filter -S . --include 'FORMAT/FT="PASS" && (FORMAT/DP>=8 & FORMAT/AB>=0.15) |FORMAT/GT="0/0" | FORMAT/GT="0"' -Oz -o ${shard_num}_{subshard_num}_f3.vcf.gz f3_1.vcf.gz
+bcftools filter -S . --include '(FORMAT/FT="PASS") && ((FORMAT/DP>=8 & FORMAT/AB>=0.15) | FORMAT/GT="0/0" | FORMAT/GT="0")' -Oz -o ${shard_num}_{subshard_num}_f3.vcf.gz f3_1.vcf.gz
    
     
     
