@@ -1,5 +1,5 @@
 process Pre_processing_1 {
-  publishDir "${params.outDir}/${params.chr}/${vcf_n}", mode: "copy", overwrite: true
+  publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
   // maxForks 10
   tag "Pre_processing_1_${shard_num}_${subshard_num}"
   label "Pre_processing_1"
