@@ -45,7 +45,7 @@ NF>=4 {
 bgzip -f tmp.vcf
 tabix -f -p vcf tmp.vcf.gz
 
-bcftools isec -n=2 -w1 -Oz -o siteqc_pass_variants_filtered.vcf.gz "1.full_cadd15.vcf.gz" tmp.vcf.gz
+bcftools isec -n=2 -w1 -Oz -o siteqc_pass_variants_filtered.vcf.gz "full_cadd15.vcf.gz" tmp.vcf.gz
 bcftools +fill-tags siteqc_pass_variants_filtered.vcf.gz -- -t 'FORMAT/AB:1=float((FORMAT/AD[:1]) / (FORMAT/DP))' | bgzip -c > f3_1.vcf.gz
 ####
 
