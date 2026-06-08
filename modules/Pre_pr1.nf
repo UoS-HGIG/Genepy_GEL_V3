@@ -7,14 +7,17 @@ process Pre_processing_1 {
   input:
   tuple path("full_cadd15.vcf.gz"), val(shard_num),val(subshard_num)
   path("vep_out")
+  path(base_site_qc)
   output:
   tuple path("${shard_num}_${subshard_num}_f3.vcf.gz"), val(shard_num),val(subshard_num), emit:main
   path("f3_1.vcf.gz")
   
   script:
     """
-
+ls ${base_site_qc}
 echo "step1"
+base_site_qc_rp=\$(readlink -f ${base_site_qc})
+ls ${base_site_qc_rp}
 bcftools query "${params.base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM:%POS:%REF:%ALT\n' > siteqc_pass_variants.tsv
 echo "step2"
 cat > tmp.vcf <<'EOF'
