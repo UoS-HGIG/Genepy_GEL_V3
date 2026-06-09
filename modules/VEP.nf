@@ -57,8 +57,9 @@ echo "VEP"
   tabix -p vcf "${subshard_num}.p1.vep.vcf.gz"
   tabix -p vcf "${vcfFile}"
 echo "3"
-    bcftools isec -n=2 -w1 -c both -Oz  -o "${subshard_num}.full_cadd15.vcf.gz" ${vcfFile}  "${subshard_num}.p1.vep.vcf.gz"
-
-    tabix -p vcf "${subshard_num}.full_cadd15.vcf.gz"
+    bcftools isec -n=2 -w1 -c both -Oz  -o "${subshard_num}.isec_cadd15.vcf.gz" ${vcfFile}  "${subshard_num}.p1.vep.vcf.gz"
+    tabix -p vcf "${subshard_num}.isec_cadd15.vcf.gz"
+    bcftools annotate -a  "${subshard_num}.p1.vep.vcf.gz" -c '+CSQ'  -Oz -o "${subshard_num}.full_cadd15.vcf.gz" "${subshard_num}.isec_cadd15.vcf.gz"
+    bcftools index -f "${subshard_num}.full_cadd15.vcf.gz"
     """
 }
