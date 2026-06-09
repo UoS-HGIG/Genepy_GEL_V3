@@ -1,17 +1,17 @@
 process Pre_processing_2 {
-  publishDir "${params.outDir}/${params.chr}/${vcf_n}", mode: "copy", overwrite: true
+  publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
   //maxForks 10
   tag "Pre_processing_2_${shard}_${subshard}"
   label "Pre_processing_2"
   
 
   input:
-  tuple file("f5.vcf.gz"), val(shard), val(subshard) 
+  tuple file("f5.vcf.gz"),val(shard_num),val(subshard_num) 
   path(header_meta)
   path(Genecode_p50_bed)
   path(template)
   output:
-  tuple path("c1"), path("c2"), path("c3"), path("c4"),path("c5"),path("c5a"),path("c5b"),path("gene.lst"),path("f5_dedup.vcf.gz"),path("header_meta"), val(shard) , val(subshard) ,emit: main 
+  tuple path("c1"), path("c2"), path("c3"), path("c4"),path("c5"),path("c5a"),path("c5b"),path("gene.lst"),path("f5_dedup.vcf.gz"),path("header_meta"), val(shard_num),val(subshard_num) ,emit: main 
   
   shell:
     """
