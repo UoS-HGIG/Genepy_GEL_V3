@@ -8,7 +8,6 @@ process Pre_processing_2 {
   input:
   tuple file("f5.vcf.gz"), val(vcf_n), val(chrx) 
   path(header_meta)
- // path(IBD_gwas_bed)
   path(Genecode_p50_bed)
   path(template)
   output:
