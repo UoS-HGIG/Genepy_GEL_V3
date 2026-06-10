@@ -87,6 +87,7 @@ perl -ne 'print join("\n", split(/\,/,$_));print("\n")' c3 |sort -u |grep -E 'lo
 #perl -ne 'print join("\n", split(/\,/,$_));print("\n")' c3 |sort -u |grep -E 'locus'>gene.lst
 
 ##AF
+##########################################cut -f 3 -d';' c_u | awk -F"|" '{OFS="\t"}{if ($5>0) print$6,$15,$24,$33,$42,$51,$60,$69,$78,$87; else print$8,$17,$26,$35,$44,$53,$62,$71,$80,$89}' >c4
 cut -f 3 -d';' c_u | awk -F"|" '{OFS="\t"}{if ($5>0) print$6,$15,$24,$33,$42,$51,$60,$69,$78,$87; else print$8,$17,$26,$35,$44,$53,$62,$71,$80,$89}' >c4
 #| sed 's/AF\=//g' >c4a
 #awk -F, -v OFS=, 'NR==FNR{if(max<10)max=10;next};
