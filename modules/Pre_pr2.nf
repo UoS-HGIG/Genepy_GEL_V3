@@ -31,7 +31,7 @@ process Pre_processing_2 {
   path("c2")
   path("f61.vcf")
   path("p1.bed")
-
+  path("order")
 
 
   
