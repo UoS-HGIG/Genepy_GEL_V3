@@ -68,10 +68,16 @@ cut -f 1-8 f6 >> f61.vcf
 
 #cut -f 3-4 -d'|' c_u|sed 's/|/_/g' >c3
 #sort -u c3 > gene.lst
+#######################################new modification without IBD.GWAS
+#bedtools intersect \
+#        -wao \
+#        -a p1.vcf \
+#        -b p50.bed IBD.bed |\
+#        cut -f 1-5,13 >p1.bed
 bedtools intersect \
         -wao \
         -a p1.vcf \
-        -b p50.bed IBD.bed |\
+        -b p50.bed |\
         cut -f 1-5,13 >p1.bed
 datamash -g 1,2,3,4,5 collapse 6 <p1.bed |\
     cut -f 6 >c3
