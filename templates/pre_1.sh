@@ -78,15 +78,16 @@ bedtools intersect \
         -wao \
         -a p1.vcf \
         -b p50.bed |\
-        cut -f 1-5,13 >p1.bed
+        cut -f 1-5,12 >p1.bed
 datamash -g 1,2,3,4,5 collapse 6 <p1.bed |\
     cut -f 6 >c3
 
 #cut -f 3-4 -d'|' c_u|sed 's/|/_/g' >c3
-perl -ne 'print join("\n", split(/\,/,$_));print("\n")' c3 |sort -u |grep -E 'locus|ENSG'>gene.lst
-#perl -ne 'print join("\n", split(/\,/,$_));print("\n")' c3 |sort -u |grep -E 'locus'>gene.lst
+perl -ne 'print join("\n", split(/\,/,$_));print("\n")' c3 |sort -u |grep -E 'ENSG'>gene.lst
+#perl -ne 'print join("\n", split(/\,/,$_));print("\n")' c3 |sort -u |grep -E 'locus'>gene.lst3
 
 ##AF
+##by gc: the AF field needs to be re-annotated; see modification on vep.nf module; this field need to be modified following the re-annotation as need to extract the max
 ##########################################cut -f 3 -d';' c_u | awk -F"|" '{OFS="\t"}{if ($5>0) print$6,$15,$24,$33,$42,$51,$60,$69,$78,$87; else print$8,$17,$26,$35,$44,$53,$62,$71,$80,$89}' >c4
 cut -f 3 -d';' c_u | awk -F"|" '{OFS="\t"}{if ($5>0) print$6,$15,$24,$33,$42,$51,$60,$69,$78,$87; else print$8,$17,$26,$35,$44,$53,$62,$71,$80,$89}' >c4
 #| sed 's/AF\=//g' >c4a
