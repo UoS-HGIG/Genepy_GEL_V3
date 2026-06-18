@@ -16,27 +16,34 @@ process Pre_processing_1 {
     """
 ls ${base_site_qc}
 echo "step1"
+tabix -p vcf "full_cadd15.vcf.gz"
+bcftools query "${base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM\t%POS0\t%POS\n'  > siteqc_pass_variants.bed
+bcftools view -R siteqc_pass_variants.bed -Oz -o siteqc_pass_variants_filtered.vcf.gz "full_cadd15.vcf.gz"
+tabix -p vcf siteqc_pass_variants_filtered.vcf.gz
 #######base_site_qc_rp=\$(readlink -f ${base_site_qc})
 #######ls \$base_site_qc_rp\*
-bcftools query "${base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM:%POS:%REF:%ALT\n' > siteqc_pass_variants.tsv
-echo "step2"
-cat > tmp.vcf <<'EOF'
+##bcftools query "${base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM:%POS:%REF:%ALT\n' > siteqc_pass_variants.tsv
+##echo "step2"
+##cat > tmp.vcf <<'EOF'
 ##fileformat=VCFv4.2
 ##FILTER=<ID=PASS,Description="All filters passed">
-EOF
-echo "step3"
-zcat "vep_out" | grep "#CHROM" >> tmp.vcf
+##EOF
+##echo "step3"
+##zcat "vep_out" | grep "#CHROM" >> tmp.vcf
 
-awk -F':' 'BEGIN{OFS="\t"}
-NF>=4 {
-    print \$1, \$2, ".", \$3, \$4, ".", "PASS", "."
-}' siteqc_pass_variants.tsv >> tmp.vcf
+##awk -F':' 'BEGIN{OFS="\t"}
+##NF>=4 {
+##    print \$1, \$2, ".", \$3, \$4, ".", "PASS", "."
+##}' siteqc_pass_variants.tsv >> tmp.vcf
+##
+##bgzip -f tmp.vcf
+##tabix -f -p vcf tmp.vcf.gz
+##echo "step4"
+##tabix -p vcf "full_cadd15.vcf.gz"
+##bcftools isec -n=2 -w1 -Oz -o siteqc_pass_variants_filtered.vcf.gz "full_cadd15.vcf.gz" tmp.vcf.gz
 
-bgzip -f tmp.vcf
-tabix -f -p vcf tmp.vcf.gz
-echo "step4"
-tabix -p vcf "full_cadd15.vcf.gz"
-bcftools isec -n=2 -w1 -Oz -o siteqc_pass_variants_filtered.vcf.gz "full_cadd15.vcf.gz" tmp.vcf.gz
+
+
 bcftools +fill-tags siteqc_pass_variants_filtered.vcf.gz -- -t 'FORMAT/AB:1=float((FORMAT/LAD[:1]) / (FORMAT/DP))' | bgzip -c > f3_1.vcf.gz
 tabix -p vcf f3_1.vcf.gz
 ####
