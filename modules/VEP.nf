@@ -60,9 +60,11 @@ echo "VEP"
   tabix -p vcf "${subshard_num}.p1.vep.vcf.gz"
   tabix -p vcf "${vcfFile}"
 echo "3"
-    bcftools isec -n=2 -w1 -c both -Oz  -o "${subshard_num}.isec_cadd15.vcf.gz" ${vcfFile}  "${subshard_num}.p1.vep.vcf.gz"
+    bcftools query "${base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM\t%POS0\t%POS\n'  > siteqc_pass_variants.bed
+    bcftools view -R siteqc_pass_variants.bed  --threads $task.cpus -Oz -o siteqc_pass_variants_filtered.vcf.gz "${subshard_num}.p1.vep.vcf.gz"
+    bcftools isec -n=2 -w1 -c both -Oz  -o "${subshard_num}.isec_cadd15.vcf.gz" ${vcfFile}  siteqc_pass_variants_filtered.vcf.gz
     tabix -p vcf "${subshard_num}.isec_cadd15.vcf.gz"
-    bcftools annotate -a  "${subshard_num}.p1.vep.vcf.gz" -c '+CSQ'  -Oz -o "${subshard_num}.full_cadd15.vcf.gz" "${subshard_num}.isec_cadd15.vcf.gz"
+    bcftools annotate -a   siteqc_pass_variants_filtered.vcf.gz -c '+CSQ'  -Oz -o "${subshard_num}.full_cadd15.vcf.gz" "${subshard_num}.isec_cadd15.vcf.gz"
     bcftools index -f "${subshard_num}.full_cadd15.vcf.gz"
     """
 }
