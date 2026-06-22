@@ -40,7 +40,7 @@ zcat "wes_cadd15.bed.gz" "cadd15_regions.bed.gz" \
 bgzip -c "p1.vcf" > "p1.vcf.gz"
 tabix -p vcf "p1.vcf.gz"
 echo "intersect p1 & WG"
-bcftools view -R "combined.bed" -O z -o "filtered_cadd15.vcf.gz" "p1.vcf.gz"
+bcftools view -R "combined.bed" -O z  --threads $task.cpus -o "filtered_cadd15.vcf.gz" "p1.vcf.gz"
 tabix -p vcf "filtered_cadd15.vcf.gz"
 
 echo "VEP"
