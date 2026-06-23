@@ -29,7 +29,7 @@ process VEP_score {
    echo "filter we"
    zcat "wes.tsv.gz" | awk -v OFS='\t' '
 \$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }' | sort -k1,1 -k2,2n > "wes_cadd15.bed"
-tabix -s1 -b2 -e2 "wes_cadd15.bed.gz"
+#### tabix -s1 -b2 -e2 "wes_cadd15.bed.gz"
 echo "filter WG.tsv.gz"
 zcat ${plugin2} | awk -v OFS='\t' '
 \$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }'| sort -k1,1 -k2,2n  > "cadd15_regions.bed"
