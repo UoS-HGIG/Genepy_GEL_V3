@@ -7,7 +7,6 @@ process Pre_processing_1 {
   input:
   tuple path("full_cadd15.vcf.gz"), val(shard_num),val(subshard_num)
   path("vep_out")
-  path(base_site_qc)
   output:
   tuple path("${shard_num}_${subshard_num}_f3.vcf.gz"), val(shard_num),val(subshard_num), emit:main
   path("f3_1.vcf.gz")
