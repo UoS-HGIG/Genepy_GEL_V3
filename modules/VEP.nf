@@ -28,17 +28,41 @@ process VEP_score {
 ##recommend
    echo "filter we"
    zcat "wes.tsv.gz" | awk -v OFS='\t' '
-\$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }' | sort -k1,1 -k2,2n | bgzip -c > "wes_cadd15.bed.gz"
+\$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }' | sort -k1,1 -k2,2n > "wes_cadd15.bed"
 tabix -s1 -b2 -e2 "wes_cadd15.bed.gz"
 echo "filter WG.tsv.gz"
 zcat ${plugin2} | awk -v OFS='\t' '
-\$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }'| sort -k1,1 -k2,2n | bgzip > "cadd15_regions.bed.gz"
-tabix -s1 -b2 -e2 "cadd15_regions.bed.gz"
+\$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }'| sort -k1,1 -k2,2n  > "cadd15_regions.bed"
+###### tabix -s1 -b2 -e2 "cadd15_regions.bed.gz"
 bcftools query "${base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM\t%POS0\t%POS\n'  > "siteqc_pass_variants.bed"
-( zcat "wes_cadd15.bed.gz" "cadd15_regions.bed.gz"; cat "siteqc_pass_variants.bed" ) \
-  | sort -k1,1V -k2,2n -k3,3n \
-  | uniq \
-  > "combined.bed"
+awk '
+function load_bed(file,   line, f) {
+    while ((getline line < file) > 0) {
+        if (line ~ /^#/ || line == "") continue
+        split(line, f, "\t")
+        n[f[1]]++
+        start[f[1], n[f[1]]] = f[2]
+        end[f[1], n[f[1]]]   = f[3]
+    }
+    close(file)
+}
+BEGIN {
+    load_bed("wes_cadd15.bed")
+    load_bed("cadd15_regions.bed")
+}
+{
+    chr = \$1; s = \$2; e = \$3
+    for (i = 1; i <= n[chr]; i++) {
+        if (s < end[chr, i] && e > start[chr, i]) {
+            print
+            break
+        }
+    }
+}' siteqc_pass_variants.bed > siteqc_intersected.bed
+##( zcat "wes_cadd15.bed.gz" "cadd15_regions.bed.gz"; cat "siteqc_pass_variants.bed" ) \
+##  | sort -k1,1V -k2,2n -k3,3n \
+##  | uniq \
+##  > "combined.bed"
 
 bgzip -c "p1.vcf" > "p1.vcf.gz"
 tabix -p vcf "p1.vcf.gz"
