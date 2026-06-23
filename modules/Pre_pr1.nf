@@ -13,7 +13,7 @@ process Pre_processing_1 {
  
   script:
     """
-ls ${base_site_qc}
+
 echo "step1"
 tabix -p vcf "full_cadd15.vcf.gz"
 bcftools query "${base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM\t%POS0\t%POS\n'  > siteqc_pass_variants.bed
