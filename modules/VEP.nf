@@ -12,7 +12,7 @@ process VEP_score {
   path(plugin2)
   path(genomad_indx1)
   path(genomad_indx2)
-  
+  path(base_site_qc)
   output:
    tuple path("${subshard_num}.full_cadd15.vcf.gz"), val(shard_num),val(subshard_num) ,emit: vep_out
    path("${subshard_num}.p1.vep.vcf.gz"),emit: vep_out2
@@ -20,6 +20,7 @@ process VEP_score {
    path("wes_cadd15.bed.gz")
    path("cadd15_regions.bed.gz")
    path("filtered_cadd15.vcf.gz")
+   path("siteqc_pass_variants.bed")
   script:
   
   
@@ -33,8 +34,8 @@ echo "filter WG.tsv.gz"
 zcat ${plugin2} | awk -v OFS='\t' '
 \$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }'| sort -k1,1 -k2,2n | bgzip > "cadd15_regions.bed.gz"
 tabix -s1 -b2 -e2 "cadd15_regions.bed.gz"
-bcftools query "${base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM\t%POS0\t%POS\n'  > siteqc_pass_variants.bed
-( zcat "wes_cadd15.bed.gz" "cadd15_regions.bed.gz"; cat siteqc_pass_variants.bed ) \
+bcftools query "${base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM\t%POS0\t%POS\n'  > "siteqc_pass_variants.bed"
+( zcat "wes_cadd15.bed.gz" "cadd15_regions.bed.gz"; cat "siteqc_pass_variants.bed" ) \
   | sort -k1,1V -k2,2n -k3,3n \
   | uniq \
   > "combined.bed"
@@ -62,8 +63,6 @@ echo "VEP"
   tabix -p vcf "${subshard_num}.p1.vep.vcf.gz"
   tabix -p vcf "${vcfFile}"
 echo "3"
-  ##  bcftools query "${base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM\t%POS0\t%POS\n'  > siteqc_pass_variants.bed
-  ##  bcftools view -R siteqc_pass_variants.bed  --threads $task.cpus -Oz -o siteqc_pass_variants_filtered.vcf.gz "${subshard_num}.p1.vep.vcf.gz"
     bcftools isec -n=2 -w1 -c both -Oz  -o "${subshard_num}.isec_cadd15.vcf.gz" ${vcfFile}  "${subshard_num}.p1.vep.vcf.gz"
     tabix -p vcf "${subshard_num}.isec_cadd15.vcf.gz"
     bcftools annotate -a   "${subshard_num}.p1.vep.vcf.gz" -c '+CSQ'  -Oz -o "${subshard_num}.full_cadd15.vcf.gz" "${subshard_num}.isec_cadd15.vcf.gz"
