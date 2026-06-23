@@ -58,7 +58,7 @@ BEGIN {
             break
         }
     }
-}' siteqc_pass_variants.bed > siteqc_intersected.bed
+}' siteqc_pass_variants.bed > "combined.bed"
 ##( zcat "wes_cadd15.bed.gz" "cadd15_regions.bed.gz"; cat "siteqc_pass_variants.bed" ) \
 ##  | sort -k1,1V -k2,2n -k3,3n \
 ##  | uniq \
