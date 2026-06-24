@@ -33,7 +33,7 @@ zcat ${plugin2} | awk -v OFS='\t' '
 ###### tabix -s1 -b2 -e2 "cadd15_regions.bed.gz"
 bcftools query "${base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM\t%POS0\t%POS\n'  > "siteqc_pass_variants.bed"
 echo "bcftools query done"
-cat "wes_cadd15.bed" "cadd15_regions.bed" > all_regions.bed
+cat "wes_cadd15.bed" "cadd15_regions.bed" > "all_regions.bed"
 
 echo "All region bed"
 
@@ -53,7 +53,7 @@ NR==FNR {
             break
         }
     }
-}' all_regions.bed "siteqc_pass_variants.bed" > "combined.bed"
+}' "siteqc_pass_variants.bed" "all_regions.bed" > "combined.bed"
 
 bgzip -c "p1.vcf" > "p1.vcf.gz"
 tabix -p vcf "p1.vcf.gz"
