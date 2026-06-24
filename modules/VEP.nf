@@ -55,8 +55,8 @@ NR==FNR {
         }
     }
 }' all_regions.bed "siteqc_pass_variants.bed" > combined.bed
-cat combined.bed | wc -l >  lcout
-echo "combind lines $lcout"
+lcout=$(wc -l < combined.bed)
+echo "combined lines $lcout"
 bgzip -c "p1.vcf" > "p1.vcf.gz"
 tabix -p vcf "p1.vcf.gz"
 echo "intersect p1 & WG"
