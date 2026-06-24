@@ -16,9 +16,7 @@ process VEP_score {
   output:
    tuple path("${subshard_num}.full_cadd15.vcf.gz"), val(shard_num),val(subshard_num) ,emit: vep_out
    path("${subshard_num}.p1.vep.vcf.gz"),emit: vep_out2
-   path("combined.bed")
-   path("wes_cadd15.bed.gz")
-   path("cadd15_regions.bed.gz")
+   path(combined.bed)
    path("filtered_cadd15.vcf.gz")
    path("siteqc_pass_variants.bed")
   script:
@@ -35,39 +33,34 @@ zcat ${plugin2} | awk -v OFS='\t' '
 \$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }'| sort -k1,1 -k2,2n  > "cadd15_regions.bed"
 ###### tabix -s1 -b2 -e2 "cadd15_regions.bed.gz"
 bcftools query "${base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM\t%POS0\t%POS\n'  > "siteqc_pass_variants.bed"
-awk '
-function load_bed(file,   line, f) {
-    while ((getline line < file) > 0) {
-        if (line ~ /^#/ || line == "") continue
-        split(line, f, "\t")
-        n[f[1]]++
-        start[f[1], n[f[1]]] = f[2]
-        end[f[1], n[f[1]]]   = f[3]
+echo "bcftools query done"
+cat "wes_cadd15.bed" "cadd15_regions.bed" > all_regions.bed
+
+echo "All region bed"
+
+awk 'BEGIN{OFS="\t"}
+NR==FNR {
+    if (\$0 !~ /^#/ && \$0 != "") {
+        n[\$1]++
+        s[\$1,n[\$1]] = \$2
+        e[\$1,n[\$1]] = \$3
     }
-    close(file)
-}
-BEGIN {
-    load_bed("wes_cadd15.bed")
-    load_bed("cadd15_regions.bed")
+    next
 }
 {
-    chr = \$1; s = \$2; e = \$3
-    for (i = 1; i <= n[chr]; i++) {
-        if (s < end[chr, i] && e > start[chr, i]) {
+    for (i=1; i<=n[\$1]; i++) {
+        if (\$2 < e[\$1,i] && \$3 > s[\$1,i]) {
             print
             break
         }
     }
-}' siteqc_pass_variants.bed > "combined.bed"
-##( zcat "wes_cadd15.bed.gz" "cadd15_regions.bed.gz"; cat "siteqc_pass_variants.bed" ) \
-##  | sort -k1,1V -k2,2n -k3,3n \
-##  | uniq \
-##  > "combined.bed"
-
+}' all_regions.bed "siteqc_pass_variants.bed" > combined.bed
+cat combined.bed | wc -l >  lcout
+echo "combind lines $lcout"
 bgzip -c "p1.vcf" > "p1.vcf.gz"
 tabix -p vcf "p1.vcf.gz"
 echo "intersect p1 & WG"
-bcftools view -R "combined.bed" -O z  --threads $task.cpus -o "filtered_cadd15.vcf.gz" "p1.vcf.gz"
+bcftools view -R combined.bed -O z  --threads $task.cpus -o "filtered_cadd15.vcf.gz" "p1.vcf.gz"
 tabix -p vcf "filtered_cadd15.vcf.gz"
 
 echo "VEP"
