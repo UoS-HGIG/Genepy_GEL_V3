@@ -16,7 +16,7 @@ process VEP_score {
   output:
    tuple path("${subshard_num}.full_cadd15.vcf.gz"), val(shard_num),val(subshard_num) ,emit: vep_out
    path("${subshard_num}.p1.vep.vcf.gz"),emit: vep_out2
-   path(combined.bed)
+   path("combined.bed")
    path("siteqc_pass_variants.bed")
   script:
   
@@ -53,12 +53,12 @@ NR==FNR {
             break
         }
     }
-}' all_regions.bed "siteqc_pass_variants.bed" > combined.bed
+}' all_regions.bed "siteqc_pass_variants.bed" > "combined.bed"
 
 bgzip -c "p1.vcf" > "p1.vcf.gz"
 tabix -p vcf "p1.vcf.gz"
 echo "intersect p1 & WG"
-bcftools view -R combined.bed -O z  --threads $task.cpus -o "filtered_cadd15.vcf.gz" "p1.vcf.gz"
+bcftools view -R "combined.bed" -O z  --threads $task.cpus -o "filtered_cadd15.vcf.gz" "p1.vcf.gz"
 tabix -p vcf "filtered_cadd15.vcf.gz"
 
 echo "VEP"
