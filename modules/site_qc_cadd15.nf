@@ -28,14 +28,16 @@ echo "filter WG.tsv.gz"
 ###### tabix -s1 -b2 -e2 "cadd15_regions.bed.gz"
 bcftools query "${base_site_qc}/shard-${shard_num}/subshard-${subshard_num}/dragen.gel.siteqc.vcf.gz" -i '(MEDIAN_DP>=8) & (MEDIAN_GQ>=10) & (MISSINGNESS_RATE<=0.12)' -f '%CHROM\\t%POS0\\t%POS\n'  > "siteqc_pass_variants.bed"
 echo "bcftools query done"
+head "siteqc_pass_variants.bed"
 head "wes_cadd15.bed"
 head ${plugin3}
-head "all_regions.bed"
+
 cat "wes_cadd15.bed" ${plugin3} > "all_regions.bed"
 head "all_regions.bed"
 echo "All region bed"
-
-bedtools intersect -u -a "all_regions.bed"  -b "siteqc_pass_variants.bed"  > "combined.bed"
+awk 'BEGIN{OFS="\\t"} $1 !~ /^#/ && NF>=3 {print \$1, \$2, \$3}' "all_regions.bed" > "all_regions.clean.bed"
+head "all_regions.clean.bed"
+bedtools intersect -u -a "all_regions.clean.bed"  -b "siteqc_pass_variants.bed"  > "combined.bed"
 
 
     """
