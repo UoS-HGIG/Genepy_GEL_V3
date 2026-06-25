@@ -5,13 +5,13 @@ process CADD_score {
   maxForks 20
   input:
   tuple val(shard_num), val(subshard_num), val(chr_name), path(vcf_File), path(annotations_cadd)
-  // tuple val(shard_num), val(subshard_num), val (chr),  path(vcf_File), path(gnomad_joint_vcf), path(cadd_)
+ 
       
-  //val cadd_param = params.cadd_
+ 
   output:
   tuple val(shard_num),path("p1.vcf"), path("wes_${subshard_num}.raw.tsv.gz"), path("wes_${subshard_num}.raw.tsv.gz.tbi"), val(subshard_num), path(vcf_File), emit: pre_proc_1
   path("${subshard_num}.p11.vcf.gz")
-  // path("f3b.vcf")
+ 
   script:
     """
     echo "CADD"
@@ -20,7 +20,7 @@ process CADD_score {
     
     bcftools view -G ${vcf_File} -Ov  --threads $task.cpus -o p1.vcf
     st=\$(awk '\$0 !~ /^#/ {print NR; exit}' p1.vcf)
-    ## awk -F"\t" '\$1 ~ /^#/ || length(\$4)>1 || length(\$5)>1' p1.vcf | sed "\${st},\\\$s/chr//g" > ${subshard_num}.p11.vcf
+   
 
     awk -F"\t" -v OFS="\t" -v st="\$st" '
       NR < st {print; next}
@@ -30,15 +30,9 @@ process CADD_score {
     bgzip -f "${subshard_num}.p11.vcf"
     tabix -p vcf "${subshard_num}.p11.vcf.gz"
     bcftools view -v indels -O v -o "${subshard_num}_indels.p11.vcf" "${subshard_num}.p11.vcf.gz"
-    ##tabix -p vcf "${subshard_num}_indels.p11.vcf"
     CADD.sh -c $task.cpus -o wes_${subshard_num}.raw.tsv.gz "${subshard_num}_indels.p11.vcf"
     tabix -p vcf wes_${subshard_num}.raw.tsv.gz
     ### CADD TSV columns: Chrom, Pos, Ref, Alt, RawScore, PHRED (col 6)
     
-    ##zcat wes_${subshard_num}.raw.tsv.gz | awk 'NR>2 && \$1 !~ /^#/ && \$6 >= 15 {print "chr"\$1"\t"\$2}' > cadd15_regions.txt
-    ##bcftools norm -m -both -Oz -o p1.bi.vcf.gz p1.vcf 
-    ##tabix -p vcf p1.bi.vcf.gz
-    ##bcftools view -R cadd15_regions.txt -Oz -o p1.cadd15.vcf.gz p1.bi.vcf.gz
-    ##tabix -p vcf p1.cadd15.vcf.gz
     """
 }
