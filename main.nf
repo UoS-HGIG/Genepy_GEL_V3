@@ -76,7 +76,7 @@ workflow {
   //      }
       CADD_score(chrx)
       site_qc_cadd15(CADD_score.out.pre_proc_1,params.base_site_qc,params.plugin3)
- ///     VEP_score(CADD_score.out.pre_proc_1,params.homos_vep,params.vep_plugins,params.plugin1,params.plugin2,params.genomad_indx1,params.genomad_indx2,params.base_site_qc)
+      VEP_score(site_qc_cadd15.out.site_qc_out,params.homos_vep,params.vep_plugins,params.plugin1,params.plugin2,params.genomad_indx1,params.genomad_indx2,params.base_site_qc)
  ///     Pre_processing_1(VEP_score.out.vep_out,VEP_score.out.vep_out2)
  ///     Pre_processing_2(Pre_processing_1.out.main,params.header_meta,params.Genecode_p50_bed,params.templates)
 ////      Pre_processing_3(Pre_processing_2.out.main,params.templates)     
