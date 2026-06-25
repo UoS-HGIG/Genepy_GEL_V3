@@ -7,6 +7,7 @@ process site_qc_cadd15 {
   input:
   tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile)
   path(base_site_qc)
+  path(plugin2)
   output:
    tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile),path("combined.bed"), emit: site_qc_out
   script:
