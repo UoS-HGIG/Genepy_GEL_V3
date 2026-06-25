@@ -10,7 +10,7 @@ process CADD_score {
   //val cadd_param = params.cadd_
   output:
   tuple val(shard_num),path("p1.vcf"), path("wes_${subshard_num}.raw.tsv.gz"), path("wes_${subshard_num}.raw.tsv.gz.tbi"), val(subshard_num), path(vcf_File), emit: pre_proc_1
-  path("${subshard_num}.p11.vcf")
+  path("${subshard_num}.p11.vcf.gz")
   // path("f3b.vcf")
   script:
     """
