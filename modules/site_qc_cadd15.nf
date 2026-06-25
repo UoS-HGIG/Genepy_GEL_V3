@@ -29,23 +29,7 @@ cat "wes_cadd15.bed" ${plugin3} > "all_regions.bed"
 
 echo "All region bed"
 
-awk 'BEGIN{OFS="\\t"}
-NR==FNR {
-    if (\$0 !~ /^#/ && \$0 != "") {
-        n[\$1]++
-        s[\$1,n[\$1]] = \$2
-        e[\$1,n[\$1]] = \$3
-    }
-    next
-}
-{
-    for (i=1; i<=n[\$1]; i++) {
-        if (\$2 < e[\$1,i] && \$3 > s[\$1,i]) {
-            print
-            break
-        }
-    }
-}' "siteqc_pass_variants.bed" "all_regions.bed" > "combined.bed"
+bedtools intersect -u -a "all_regions.bed"  -b "siteqc_pass_variants.bed"  > "combined.bed"
 
 
     """
