@@ -9,7 +9,7 @@ process Pre_processing_3 {
   output:
   path("metafiles15_*"), emit: meta_files15
   path("metafiles20_*"), emit: meta_files20
-  path("metafilesALL_*"), emit: meta_filesALL
+  //path("metafilesALL_*"), emit: meta_filesALL
   //tuple path("metafilesALL"),path("metafiles15"),path("metafiles20"), emit: folders
   //path("*")
   //file("c6")
@@ -24,11 +24,11 @@ process Pre_processing_3 {
     cp \$REAL_PATH1/pre_2.sh ./pre_2.sh
     chmod +x ./pre_2.sh
     VCF_NAME=\$(basename ${vcf_n})
-    region=\$(echo \$VCF_NAME | awk -F'[_|.]' '{print \$5"_"\$6}')
+    ##region=\$(echo \$VCF_NAME | awk -F'[_|.]' '{print \$5"_"\$6}')
     ##mkdir -p metafilesALL metafiles15 metafiles20
     ##touch metafilesALL/ALL.txt
     ##touch metafiles15/15.txt
     ##touch metafiles20/20.txt
-    ./pre_2.sh \$region
+    ./pre_2.sh
     """
 }
