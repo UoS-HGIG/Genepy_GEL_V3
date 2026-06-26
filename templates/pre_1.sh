@@ -96,7 +96,7 @@ perl -ne 'print join("\n", split(/\,/,$_));print("\n")' c3 |sort -u |grep -E 'EN
 
 ###adding new part: extracting position aware max allele frequency and cadd score 
 csq_f=$(zgrep "^##INFO=<ID=CSQ" f5_dedup.vcf.gz | sed -E 's/.*Format: //; s/">.*//')
-
+echo "$csq_f"
 read gS gE eS eE aI < <(
     echo "$csq_f" | tr '|' '\n' | awk '
     /Allele$/      {aI=NR}
@@ -167,6 +167,7 @@ BEGIN { OFS="\t" }
     }
     print out
 }' > c5
+echo "$cadd_pos"
 ##raw_score_all
 #########commented out by iman#######cut -f 3 -d';' c_u |awk -F"|" '{OFS="\t"}{print$9,$18,$27,$36,$45,$54,$63,$72,$81,$90}' >c5
 
