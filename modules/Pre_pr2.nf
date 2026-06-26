@@ -32,6 +32,8 @@ process Pre_processing_2 {
   path("f61.vcf")
   path("p1.bed")
   path("order")
+  path("csq_f")
+  path("cadd_pos")
 
 
   
