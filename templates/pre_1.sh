@@ -95,78 +95,78 @@ perl -ne 'print join("\n", split(/\,/,$_));print("\n")' c3 |sort -u |grep -E 'EN
 #                           {NF=10}1' c4a{,} | sed 's/\,/\t/g' >c4
 
 ###adding new part: extracting position aware max allele frequency and cadd score 
-csq_f=\$(zgrep "^##INFO=<ID=CSQ" f5_dedup.vcf.gz | sed -E 's/.*Format: //; s/">.*//')
+csq_f=$(zgrep "^##INFO=<ID=CSQ" f5_dedup.vcf.gz | sed -E 's/.*Format: //; s/">.*//')
 
-    read gS gE eS eE aI < <(
-        echo "\$csq_f" | tr '|' '\n' | awk '
-            /Allele/      {aI=NR}
-            /gnomADg_AF/  {gS=NR}
-            /gnomADg/ && /AF/ {gE=NR}
-            /gnomADe_AF/  {eS=NR}
-            /gnomADe/ && /AF/ {eE=NR}
-            END {print gS, gE, eS, eE, aI}
-        '
-    )
+read gS gE eS eE aI < <(
+    echo "$csq_f" | tr '|' '\n' | awk '
+    /Allele$/      {aI=NR}
+    /gnomADg_AF/   {gS=NR}
+    /gnomADg_/     {gE=NR}
+    /gnomADe_AF/   {eS=NR}
+    /gnomADe_/     {eE=NR}
+    END {print gS, gE, eS, eE, aI}
+    '
+)
 
-    bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%INFO/CSQ\\n' ${vcf} |
-    awk -F'\\t' -v gS="\$gS" -v gE="\$gE" -v eS="\$eS" -v eE="\$eE" -v aI="\$aI" '
-    BEGIN{OFS="\\t"}
-    {
-        nalt = split(\$4, alts, ",")
-        ncsq = split(\$5, csq, ",")
-        out = ""
+bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%INFO/CSQ\n' f5_dedup.vcf.gz |
+awk -F'\t' -v gS="$gS" -v gE="$gE" -v eS="$eS" -v eE="$eE" -v aI="$aI" '
+BEGIN{OFS="\t"}
+{
+    nalt = split($4, alts, ",")
+    ncsq = split($5, csq, ",")
+    out = ""
 
-        for (a=1; a<=nalt; a++) {
-            maxG = 0
-            maxE = 0
-            useG = 0
-            useE = 0
+    for (a=1; a<=nalt; a++) {
+        maxG = 0
+        maxE = 0
+        useG = 0
+        useE = 0
 
-            for (i=1; i<=ncsq; i++) {
-                split(csq[i], f, "|")
-                if (f[aI] != alts[a]) continue
+        for (i=1; i<=ncsq; i++) {
+            split(csq[i], f, "|")
+            if (f[aI] != alts[a]) continue
 
-                if (f[gS] != "" && f[gS] != "." && f[gS]+0 > 0) useG = 1
-                if (f[eS] != "" && f[eS] != "." && f[eS]+0 > 0) useE = 1
+            if (f[gS] != "" && f[gS] != "." && f[gS]+0 > 0) useG = 1
+            if (f[eS] != "" && f[eS] != "." && f[eS]+0 > 0) useE = 1
 
-                for (j=gS; j<=gE; j++)
-                    if (f[j] != "" && f[j] != "." && f[j]+0 > maxG) maxG = f[j]+0
+            for (j=gS; j<=gE; j++)
+                if (f[j] != "" && f[j] != "." && f[j]+0 > maxG) maxG = f[j]+0
 
-                for (j=eS; j<=eE; j++)
-                    if (f[j] != "" && f[j] != "." && f[j]+0 > maxE) maxE = f[j]+0
-            }
-
-            val = (useG ? maxG : (useE ? maxE : 0))
-            out = out (a==1 ? "" : OFS) val
+            for (j=eS; j<=eE; j++)
+                if (f[j] != "" && f[j] != "." && f[j]+0 > maxE) maxE = f[j]+0
         }
 
-        print out
-    }' > c4
+        val = (useG ? maxG : (useE ? maxE : 0))
+        out = out (a==1 ? "" : OFS) val
+    }
 
-    cadd_pos=\$(echo "\$csq_f" | tr '|' '\\n' | awk '
-        /CADD_RAW/ { print NR; exit }
-    ')
+    print out
+}' > c4
 
-    bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%INFO/CSQ\\n' f5_dedup.vcf.gz |
-    awk -F'\\t' -v p="\$cadd_pos" '
-    BEGIN{OFS="\\t"}
-    {
-        n = split(\$4, alts, ",")
-        m = split(\$5, csq, ",")
-        out = ""
-        for (a = 1; a <= n; a++) {
-            val = "."
-            for (i = 1; i <= m; i++) {
-                split(csq[i], f, "|")
-                if (f[1] == alts[a]) {
-                    if (p <= length(f) && f[p] != "") val = f[p]
-                    break
-                }
+cadd_pos=$(echo "$csq_f" | tr '|' '\n' | awk '
+/^CADD_RAW$/ { print NR; exit }
+')
+
+bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%INFO/CSQ\n' f5_dedup.vcf.gz |
+awk -F'\t' -v p="$cadd_pos" '
+BEGIN { OFS="\t" }
+{
+    n = split($4, alts, ",")
+    m = split($5, csq, ",")
+    out = ""
+    for (a = 1; a <= n; a++) {
+        val = "."
+        for (i = 1; i <= m; i++) {
+            split(csq[i], f, "|")
+            if (f[1] == alts[a]) {
+                if (p <= length(f) && f[p] != "") val = f[p]
+                break
             }
-            out = out (a == 1 ? "" : OFS) val
         }
-        print out
-    }' > c5
+        out = out (a == 1 ? "" : OFS) val
+    }
+    print out
+}' > c5
 ##raw_score_all
 #########commented out by iman#######cut -f 3 -d';' c_u |awk -F"|" '{OFS="\t"}{print$9,$18,$27,$36,$45,$54,$63,$72,$81,$90}' >c5
 
