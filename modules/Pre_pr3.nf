@@ -17,13 +17,13 @@ process Pre_processing_3 {
   shell:
     """
     echo "Processing 3"
-    echo "vcf_n: ${vcf_n}"
+    echo "vcf_n: ${shard_num}_${subshard_num}"
 
     REAL_PATH1=\$(readlink -f ${template})
     ##ls \$REAL_PATH1
     cp \$REAL_PATH1/pre_2.sh ./pre_2.sh
     chmod +x ./pre_2.sh
-    VCF_NAME=\$(basename ${vcf_n})
+    ####VCF_NAME=\$(basename ${vcf_n})
     ##region=\$(echo \$VCF_NAME | awk -F'[_|.]' '{print \$5"_"\$6}')
     ##mkdir -p metafilesALL metafiles15 metafiles20
     ##touch metafilesALL/ALL.txt
