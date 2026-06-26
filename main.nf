@@ -18,7 +18,7 @@ include { site_qc_cadd15 } from "./modules/site_qc_cadd15"
 include { VEP_score } from "./modules/VEP"  
 include { Pre_processing_1 } from "./modules/Pre_pr1"  
 include { Pre_processing_2 } from "./modules/Pre_pr2"  
-////include { Pre_processing_3 } from "./modules/Pre_pr3"  
+include { Pre_processing_3 } from "./modules/Pre_pr3"  
 ////include { Reatt_Genes } from "./modules/Gene_reattach"
 ////include { Genepy_score } from "./modules/Genepy"
 
@@ -79,7 +79,7 @@ workflow {
       VEP_score(site_qc_cadd15.out.site_qc_out,params.homos_vep,params.vep_plugins,params.plugin1,params.plugin2,params.genomad_indx1,params.genomad_indx2,params.base_site_qc)
       Pre_processing_1(VEP_score.out.vep_out,VEP_score.out.vep_out2)
       Pre_processing_2(Pre_processing_1.out.main,params.header_meta,params.Genecode_p50_bed,params.templates)
-////      Pre_processing_3(Pre_processing_2.out.main,params.templates)     
+      Pre_processing_3(Pre_processing_2.out.main,params.templates)     
 ////     // def meta15 = Pre_processing_3.out.meta_files15.collect().map { genes_list -> ["15",chromosomeList, genes_list] }
 ////      def meta15 = Pre_processing_3.out.meta_files15.collect().map {genes_list -> ["15",chromosomeList, genes_list] }
 ////
