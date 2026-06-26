@@ -23,7 +23,7 @@ process Pre_processing_3 {
     ##ls \$REAL_PATH1
     cp \$REAL_PATH1/pre_2.sh ./pre_2.sh
     chmod +x ./pre_2.sh
-    ####VCF_NAME=\$(basename ${vcf_n})
+    
     ##region=\$(echo \$VCF_NAME | awk -F'[_|.]' '{print \$5"_"\$6}')
     ##mkdir -p metafilesALL metafiles15 metafiles20
     ##touch metafilesALL/ALL.txt
