@@ -5,7 +5,7 @@ process Reatt_Genes {
     
     label "Reatt_Genes"
     input:
-    tuple val(cadd),val(chromosome_name),path(folder_paths)
+    tuple val(cadd),val(shard_number),path(folder_paths)
     //tuple path("metafilesALL"),path("metafiles15"),val("metafiles20")
     output:
     path(folder_paths), emit: path
@@ -28,7 +28,7 @@ process Reatt_Genes {
     ##touch "\${DUP_FOLDER}/1.txt"
     ##GENE_LIST="${chromosome_name}_${cadd}_GENE.lst"
     ##> "\$GENE_LIST"
-    duplicated_genes="${chromosome_name}_${cadd}_dup.lst"
+    duplicated_genes="${shard_number}_${cadd}_dup.lst"
     > "\$duplicated_genes"
     set -u
     declare -a FOLDERS
