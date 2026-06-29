@@ -29,6 +29,6 @@ process Pre_processing_3 {
     ##touch metafilesALL/ALL.txt
     ##touch metafiles15/15.txt
     ##touch metafiles20/20.txt
-    ./pre_2.sh
+    ./pre_2.sh "${shard_num}" "${subshard_num}"
     """
 }
