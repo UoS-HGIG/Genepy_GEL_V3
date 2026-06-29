@@ -85,8 +85,8 @@ workflow {
 ////
       def meta20 = Pre_processing_3.out.meta_files20.collect().map { genes_list -> ["20",shard_number, genes_list] }
 ////      def metaALL = Pre_processing_3.out.meta_filesALL.collect().map { genes_list -> ["ALL",shard_number, genes_list] }
-      x_combo= meta15.concat(meta20)
-      Reatt_Genes(x_combo)
+      x_combo= meta15.concat(meta20).view()
+  ////    Reatt_Genes(x_combo)
     
       // Flatten the Reatt_Genes outputs
 // Flatten Nextflow outputs first
