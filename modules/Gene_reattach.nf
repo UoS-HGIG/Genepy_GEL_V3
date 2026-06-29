@@ -66,6 +66,6 @@ process Reatt_Genes {
             ##echo "\$output_file" >> "\$OUTPUT_FILE_LIST" 
         fi
     done
-    ##split -l 100 -d --additional-suffix=.txt "\$OUTPUT_FILE_LIST" "${cadd}_${chromosome_name}_chunk"
+   
     """
 }
