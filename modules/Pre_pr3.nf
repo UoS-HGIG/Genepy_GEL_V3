@@ -13,7 +13,8 @@ process Pre_processing_3 {
   //tuple path("metafilesALL"),path("metafiles15"),path("metafiles20"), emit: folders
   //path("*")
   //file("c6")
-  //file("meta_CADDALL.txt")
+  path("meta_CADD15.txt")
+  path("meta_CADD20.txt")
   shell:
     """
     echo "Processing 3"
