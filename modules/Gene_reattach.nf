@@ -16,7 +16,7 @@ process Reatt_Genes {
     echo "start"
     
     OUTPUT_FOLDER="dup${cadd}"
-    mkdir -p "\$OUTPUT_FOLDER"
+    mkdir -p "\${OUTPUT_FOLDER}"
     duplicated_genes="${shard_number}_${cadd}_dup.lst"
     > "\$duplicated_genes"
     set -u
