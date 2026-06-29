@@ -8,8 +8,8 @@
 echo "${shard_num}_${subshard_num}"
 mkdir -p "metafiles15_${shard_num}_${subshard_num}"
 mkdir -p "metafiles20_${shard_num}_${subshard_num}"
-mkdir -p "metafilesALL_${shard_num}_${subshard_num}"
-touch "metafilesALL_${shard_num}_${subshard_num}/1.txt"
+###mkdir -p "metafilesALL_${shard_num}_${subshard_num}"
+###touch "metafilesALL_${shard_num}_${subshard_num}/1.txt"
 touch "metafiles15_${shard_num}_${subshard_num}/1.txt"
 touch "metafiles20_${shard_num}_${subshard_num}/1.txt"
 
