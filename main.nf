@@ -80,13 +80,13 @@ workflow {
       Pre_processing_1(VEP_score.out.vep_out,VEP_score.out.vep_out2)
       Pre_processing_2(Pre_processing_1.out.main,params.header_meta,params.Genecode_p50_bed,params.templates)
       Pre_processing_3(Pre_processing_2.out.main,params.templates)     
-////     // def meta15 = Pre_processing_3.out.meta_files15.collect().map { genes_list -> ["15",chromosomeList, genes_list] }
-////      def meta15 = Pre_processing_3.out.meta_files15.collect().map {genes_list -> ["15",chromosomeList, genes_list] }
+////     // def meta15 = Pre_processing_3.out.meta_files15.collect().map { genes_list -> ["15",shard_number, genes_list] }
+      def meta15 = Pre_processing_3.out.meta_files15.collect().map {genes_list -> ["15",shard_number, genes_list] }.view()
 ////
-////      def meta20 = Pre_processing_3.out.meta_files20.collect().map { genes_list -> ["20",chromosomeList, genes_list] }
-////      def metaALL = Pre_processing_3.out.meta_filesALL.collect().map { genes_list -> ["ALL",chromosomeList, genes_list] }
-////      x_combo= meta15.concat(meta20).concat(metaALL)
-////      Reatt_Genes(x_combo)
+      def meta20 = Pre_processing_3.out.meta_files20.collect().map { genes_list -> ["20",shard_number, genes_list] }
+////      def metaALL = Pre_processing_3.out.meta_filesALL.collect().map { genes_list -> ["ALL",shard_number, genes_list] }
+      x_combo= meta15.concat(meta20)
+      Reatt_Genes(x_combo)
     
       // Flatten the Reatt_Genes outputs
 // Flatten Nextflow outputs first
