@@ -9,7 +9,7 @@ process Reatt_Genes {
     //tuple path("metafilesALL"),path("metafiles15"),val("metafiles20")
     output:
     path(folder_paths), emit: path
-    path("dup${cadd}"), emit: dup
+    path("dup${cadd}/*.meta"), emit: dup
     
     shell:
     """
