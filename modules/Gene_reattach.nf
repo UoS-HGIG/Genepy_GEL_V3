@@ -11,23 +11,12 @@ process Reatt_Genes {
     path(folder_paths), emit: path
     path("dup${cadd}"), emit: dup
     
-    //path("${chromosome_name}_${cadd}_dup.lst"), emit: dup
-    //path(folder_paths), emit: paths
-    //path("metafiles${cadd}/metafiles${cadd}_dup"), emit: dup_folder
     shell:
     """
     echo "start"
     
     OUTPUT_FOLDER="dup${cadd}"
-    ##OUTPUT_FILE_LIST="\${OUTPUT_FOLDER}/unique_file_paths.txt"
-    mkdir -p "\$OUTPUT_FOLDER"
-    ##touch "\${OUTPUT_FOLDER}/unique_file_paths.txt"
-    ##> "\$OUTPUT_FILE_LIST"
-    ##DUP_FOLDER="\$OUTPUT_FOLDER/metafiles${cadd}_dup"
-    ##mkdir -p "\$DUP_FOLDER"
-    ##touch "\${DUP_FOLDER}/1.txt"
-    ##GENE_LIST="${chromosome_name}_${cadd}_GENE.lst"
-    ##> "\$GENE_LIST"
+    
     duplicated_genes="${shard_number}_${cadd}_dup.lst"
     > "\$duplicated_genes"
     set -u
