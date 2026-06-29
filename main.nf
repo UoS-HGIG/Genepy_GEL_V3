@@ -120,7 +120,7 @@ def met_ = metas
         def cadd_score = (key == 'metafiles20') ? '20' :
                          (key == 'metafiles15') ? '15' : '15'
 
-        tuple(folder_path, shard_number, cadd_score, params.genepy_py, dup_path)
+        tuple(folder_path, shard_number, cadd_score, params.genepy_py,params.kary, dup_path)
     }
     .view()
 
