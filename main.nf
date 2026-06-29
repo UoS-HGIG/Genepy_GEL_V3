@@ -20,7 +20,7 @@ include { Pre_processing_1 } from "./modules/Pre_pr1"
 include { Pre_processing_2 } from "./modules/Pre_pr2"  
 include { Pre_processing_3 } from "./modules/Pre_pr3"  
 include { Reatt_Genes } from "./modules/Gene_reattach"
-////include { Genepy_score } from "./modules/Genepy"
+include { Genepy_score } from "./modules/Genepy"
 
 
 
@@ -120,7 +120,7 @@ def met_ = metas
         def cadd_score = (key == 'metafiles20') ? '20' :
                          (key == 'metafiles15') ? '15' : '15'
 
-        tuple(folder_path, shard_number, cadd_score, params.genepy_py, params.kary, dup_path)
+        tuple(folder_path, shard_number, cadd_score, params.genepy_py, dup_path)
     }
     .view()
 
@@ -137,7 +137,7 @@ def met_ = metas
 
 
      //Genepy_score(dup_)
-////     Genepy_score(met_)
+     Genepy_score(met_)
 }
 workflow.onComplete {
    println ( workflow.success ? """
