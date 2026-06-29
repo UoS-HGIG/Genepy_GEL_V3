@@ -87,43 +87,42 @@ workflow {
 ////      def metaALL = Pre_processing_3.out.meta_filesALL.collect().map { genes_list -> ["ALL",shard_number, genes_list] }
       x_combo= meta15.concat(meta20).view()
       Reatt_Genes(x_combo)
-      Reatt_Genes.out.path.flatten().view()
+     //// Reatt_Genes.out.path.flatten().view()
       // Flatten the Reatt_Genes outputs
 // Flatten Nextflow outputs first
-////def flatMetas = Reatt_Genes.out.path.flatten()
-////def flatDups  = Reatt_Genes.out.dup.flatten()
+def flatMetas = Reatt_Genes.out.path.flatten()
+def flatDups  = Reatt_Genes.out.dup.flatten()
 
 // Build metas channel: emits [ baseKey, folder_path ]
-////def metas = flatMetas.map { p ->
-////    def fullKey = p.toString().tokenize('/').find { it.startsWith('metafiles') }
-////    def baseKey = fullKey.replaceAll(/(_\d+)+$/, '')  // remove numeric suffix
-////    tuple(baseKey, p)                                // ✅ tuple, not nested list
-////}
+def metas = flatMetas.map { p ->
+    def fullKey = p.toString().tokenize('/').find { it.startsWith('metafiles') }
+    def baseKey = fullKey.replaceAll(/(_\d+)+$/, '')  
+    tuple(baseKey, p)                                
+}
 
 // Build dups channel: emits [ baseKey, dup_path ]
-////def dups = flatDups.map { d ->
-////    def fullKey = d.toString().tokenize('/').find { it.startsWith('dup') }
-////    def baseKey = fullKey?.replace('dup', 'metafiles')
-////    tuple(baseKey, d)                                // ✅ tuple, not nested list
-////}
-//dups.collect().ciew()
+def dups = flatDups.map { d ->
+    def fullKey = d.toString().tokenize('/').find { it.startsWith('dup') }
+    def baseKey = fullKey?.replace('dup', 'metafiles')
+    tuple(baseKey, d)                                
+}
+dups.collect().view()
 // Combine metas with their matching dup(s)
-////def met_ = metas
-////    .combine(dups)                       // produce all pairs
-////    .filter { m -> m[0] == m[2] }     // keep only matches on baseKey
-////    .map { m ->                       // 
-////        def key         = m[0]
-////        def folder_path = m[1]
-////        def dup_path    = m[3]
+def met_ = metas
+    .combine(dups)                       // produce all pairs
+    .filter { m -> m[0] == m[2] }     // keep only matches on baseKey
+    .map { m ->                       // 
+        def key         = m[0]
+        def folder_path = m[1]
+        def dup_path    = m[3]
 ////
 ////        // Assign CADD score
-////        def cadd_score = (key == 'metafilesALL') ? 'ALL' :
-////                         (key == 'metafiles20') ? '20' :
-////                         (key == 'metafiles15') ? '15' : 'ALL'
-////
-////        tuple(folder_path, params.chromosomes, cadd_score, params.genepy_py, params.kary, dup_path)
-////    }
-////    .view()
+        def cadd_score = (key == 'metafiles20') ? '20' :
+                         (key == 'metafiles15') ? '15' : '15'
+
+        tuple(folder_path, shard_number, cadd_score, params.genepy_py, params.kary, dup_path)
+    }
+    .view()
 
 // Dups as their own channel if needed
 ////def dup_ = dups.map { key, dup_path ->
