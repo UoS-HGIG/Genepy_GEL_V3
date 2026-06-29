@@ -9,7 +9,7 @@ process Reatt_Genes {
     //tuple path("metafilesALL"),path("metafiles15"),val("metafiles20")
     output:
     path(folder_paths), emit: path
-    path("dup${cadd}/*.meta"), emit: dup
+    path("dup${cadd}"), emit: dup
     
     shell:
     """
@@ -17,6 +17,7 @@ process Reatt_Genes {
     
     OUTPUT_FOLDER="dup${cadd}"
     mkdir -p "\${OUTPUT_FOLDER}"
+    touch "\${OUTPUT_FOLDER}/.keep"
     duplicated_genes="${shard_number}_${cadd}_dup.lst"
     > "\$duplicated_genes"
     set -u
