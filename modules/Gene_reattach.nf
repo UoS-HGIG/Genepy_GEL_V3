@@ -1,5 +1,5 @@
 process Reatt_Genes {
-    //publishDir "${params.outDir}/${params.chr}", mode: "copy", overwrite: true
+    publishDir "${params.outDir}/${shard_number}", mode: "copy", overwrite: true
     //maxForks 10
     tag "Reatt_Genes"
     
