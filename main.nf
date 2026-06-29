@@ -19,7 +19,7 @@ include { VEP_score } from "./modules/VEP"
 include { Pre_processing_1 } from "./modules/Pre_pr1"  
 include { Pre_processing_2 } from "./modules/Pre_pr2"  
 include { Pre_processing_3 } from "./modules/Pre_pr3"  
-////include { Reatt_Genes } from "./modules/Gene_reattach"
+include { Reatt_Genes } from "./modules/Gene_reattach"
 ////include { Genepy_score } from "./modules/Genepy"
 
 
@@ -86,8 +86,8 @@ workflow {
       def meta20 = Pre_processing_3.out.meta_files20.collect().map { genes_list -> ["20",shard_number, genes_list] }
 ////      def metaALL = Pre_processing_3.out.meta_filesALL.collect().map { genes_list -> ["ALL",shard_number, genes_list] }
       x_combo= meta15.concat(meta20).view()
-  ////    Reatt_Genes(x_combo)
-    
+      Reatt_Genes(x_combo)
+      Reatt_Genes.out.path.flatten().view()
       // Flatten the Reatt_Genes outputs
 // Flatten Nextflow outputs first
 ////def flatMetas = Reatt_Genes.out.path.flatten()
