@@ -1,11 +1,11 @@
 process Genepy_score {
-    publishDir "${params.outDir}/${params.chr}/${cadd}", mode: "copy", overwrite: true
+    publishDir "${params.outDir}/${shard_num}", mode: "copy", overwrite: true
     //publishDir "${params.chr}", mode: "copy", overwrite: true
     tag "Genepy_score_${cadd}"
     label "Genepy_score"
     maxForks 20
     input:
-    tuple path(path1),val(chr),val(cadd),path(genepy),path(kary),path(dup)
+    tuple path(path1),val(shard_num),val(cadd),path(genepy),path(kary),path(dup)
     // path(genepy) 
 
     output:
