@@ -155,7 +155,7 @@ BEGIN { OFS="\t" }
     m = split($5, csq, ",")
     out = ""
     for (a = 1; a <= n; a++) {
-        val = "."
+        val = " "
         for (i = 1; i <= m; i++) {
             split(csq[i], f, "|")
             if (f[1] == alts[a]) {
