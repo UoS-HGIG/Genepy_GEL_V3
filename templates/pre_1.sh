@@ -115,6 +115,7 @@ BEGIN{OFS="\t"}
     nalt = split($4, alts, ",")
     ncsq = split($5, csq, ",")
     out = ""
+    count = 0
 
     for (a=1; a<=nalt; a++) {
         maxG = 0
@@ -137,7 +138,13 @@ BEGIN{OFS="\t"}
         }
 
         val = (useG ? maxG : (useE ? maxE : 0))
-        out = out (a==1 ? "" : OFS) val
+        out = out (count==0 ? "" : OFS) val
+        count++
+    }
+
+    while (count < 10) {
+        out = out OFS 0
+        count++
     }
 
     print out
@@ -154,17 +161,26 @@ BEGIN { OFS="\t" }
     n = split($4, alts, ",")
     m = split($5, csq, ",")
     out = ""
+    count = 0
+
     for (a = 1; a <= n; a++) {
-        val = " "
+        val = ""
         for (i = 1; i <= m; i++) {
             split(csq[i], f, "|")
             if (f[1] == alts[a]) {
-                if (p <= length(f) && f[p] != "") val = f[p]
+                if (p <= length(f) && f[p] != "" && f[p] != ".") val = f[p]
                 break
             }
         }
-        out = out (a == 1 ? "" : OFS) val
+        out = out (count == 0 ? "" : OFS) val
+        count++
     }
+
+    while (count < 10) {
+        out = out OFS ""
+        count++
+    }
+
     print out
 }' > c5
 echo "$cadd_pos"
