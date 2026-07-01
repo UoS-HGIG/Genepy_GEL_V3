@@ -58,21 +58,23 @@ workflow {
 
                 shard_map["${shard}_${subshard}"] = chr_name
             }   
-        Channel.fromPath(shard_path_pattern, checkIfExists: true)
-        .view { f -> "${f.name} | parent=${f.parent.name} | grandparent=${f.parent.parent.name}" }
+       
         chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
-        .filter { f -> f.name.contains('14') || f.name.contains('15') || f.name.contains('16') || f.name.contains('17')  }
-        .map { vcf_file->
-            def shard_num       = shard_number.toString()
-            def subshard_number = vcf_file.parent.name.replace('subshard-', '')
-            def chr_name        = shard_map["${shard_num}_${subshard_number}"]
-            if( !chr_name ) {
-                throw new IllegalArgumentException("No chromosome mapping found for shard=${shard_num}, subshard=${subshard_number}")
-            }
+    .filter { f ->
+        def n = f.parent.name.replace('subshard-', '')
+        n in ['14', '15', '16', '17']
+    }
+    .map { vcf_file ->
+        def shard_num       = shard_number.toString()
+        def subshard_number = vcf_file.parent.name.replace('subshard-', '')
+        def chr_name        = shard_map["${shard_num}_${subshard_number}"]
 
-            // def gnomad_joint_vcf = "${params.gnomad_joint_dir}/${chr_name}.joint.vcf.gz"
-            tuple(shard_num, subshard_number, chr_name, vcf_file,file(params.annotations_cadd))
-        }.view()
+        if( !chr_name ) {
+            throw new IllegalArgumentException("No chromosome mapping found for shard=${shard_num}, subshard=${subshard_number}")
+        }
+
+        tuple(shard_num, subshard_number, chr_name, vcf_file, file(params.annotations_cadd))
+    }
   //          tuple(shard_num, vcf_n, f, file(params.annotations_cadd))
   //      }
       CADD_score(chrx)
