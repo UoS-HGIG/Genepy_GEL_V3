@@ -58,7 +58,8 @@ workflow {
 
                 shard_map["${shard}_${subshard}"] = chr_name
             }   
-
+        Channel.fromPath(shard_path_pattern, checkIfExists: true)
+        .view { f -> "${f.name} | parent=${f.parent.name} | grandparent=${f.parent.parent.name}" }
         chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
         .filter { f -> f.name.contains('14') || f.name.contains('15') || f.name.contains('16') || f.name.contains('17')  }
         .map { vcf_file->
