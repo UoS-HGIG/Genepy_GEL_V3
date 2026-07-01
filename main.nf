@@ -130,7 +130,7 @@ def met_ = metas
 ////                     (key == 'metafiles20') ? '20' :
 ////                     (key == 'metafiles15') ? '15' : 'ALL'
 ////
-////    tuple(dup_path, params.chromosomes, cadd_score, params.genepy_py, params.kary, dup_path)
+////    tuple(dup_path, params.chromosomes, cadd_score, params.genepy_py, dup_path)
 ////}
 ////.view()
 
