@@ -28,6 +28,7 @@ process Genepy_score {
     ##        python -u ./gp.py "\$fname" ${kary}
     ##    fi
     ## done
+touch kary.txt
 echo "" > kary.txt
 for file in ${path1}/*; do
         if [ -f "\$file" ]; then
