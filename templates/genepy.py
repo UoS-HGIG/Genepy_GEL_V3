@@ -297,6 +297,7 @@ files_with_paths = sys.argv[1]
 gene=files_with_paths
 file_name = os.path.basename(gene)
 xo_xy_samples = read_karyo_samples(sys.argv[2])
+xo_xy_samples = ""
 print(file_name)
 if file_name.startswith("ENSG") and file_name.endswith('.meta'):
     print(file_name)
