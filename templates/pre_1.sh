@@ -117,7 +117,7 @@ BEGIN{OFS="\t"}
     out = ""
     count = 0
 
-    for (a=1; a<=nalt; a++) {
+    for (a = 1; a <= nalt && a <= 10; a++) {
         maxG = 0
         maxE = 0
         useG = 0
@@ -163,7 +163,7 @@ BEGIN { OFS="\t" }
     out = ""
     count = 0
 
-    for (a = 1; a <= n; a++) {
+    for (a = 1; a <= n  && a <= 10 ; a++) {
         val = ""
         for (i = 1; i <= m; i++) {
             split(csq[i], f, "|")
