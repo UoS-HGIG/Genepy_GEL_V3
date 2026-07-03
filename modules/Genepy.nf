@@ -1,5 +1,5 @@
 process Genepy_score {
-    publishDir "${params.outDir}/${shard_num}", mode: "copy", overwrite: true
+    publishDir "${params.outDir}/${shard_num}/Genepy_score/${cadd}", mode: "copy", overwrite: true
     //publishDir "${params.chr}", mode: "copy", overwrite: true
     tag "Genepy_score_${cadd}"
     label "Genepy_score"
