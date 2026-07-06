@@ -78,13 +78,7 @@ workflow {
   //          tuple(shard_num, vcf_n, f, file(params.annotations_cadd))
   //      }
       CADD_score(chrx)
-      split_cadd = CADD_score.out.pre_proc_1.branch { shard_num, p1, rawtsv, rawtbi,subshard_num,vcf, chr_name ->
-        chrX: chr_name == 'chrX' || chr_name == 'X'
-        other: !(chr_name == 'chrX' || chr_name == 'X')
-    }
-      site_qc_chrx(split_cadd.chrX, params.base_site_qc,params.plugin3)
-      VEP_chrx(site_qc_chrx.out.site_qc_out, params.homos_vep,params.vep_plugins,params.plugin1,params.plugin2,params.genomad_indx1,params.genomad_indx2,params.base_site_qc)
-      site_qc_cadd15(split_cadd.other,params.base_site_qc,params.plugin3)
+      site_qc_cadd15(CADD_score.out.pre_proc_1,params.base_site_qc,params.plugin3)
       VEP_score(site_qc_cadd15.out.site_qc_out,params.homos_vep,params.vep_plugins,params.plugin1,params.plugin2,params.genomad_indx1,params.genomad_indx2,params.base_site_qc)
       all_vep_out  = VEP_chrx.out.vep_out.mix(VEP_score.out.vep_out).view()
       Pre_processing_1(all_vep_out)
