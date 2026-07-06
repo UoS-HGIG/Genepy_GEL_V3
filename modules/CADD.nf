@@ -9,8 +9,7 @@ process CADD_score {
       
  
   output:
-  tuple val(shard_num),path("p1.vcf"), path("wes_${subshard_num}.raw.tsv.gz"), path("wes_${subshard_num}.raw.tsv.gz.tbi"), val(subshard_num), path(vcf_File), emit: pre_proc_1
-  path("cadd_chr.txt"), emit: chr_name
+  tuple val(shard_num),path("p1.vcf"), path("wes_${subshard_num}.raw.tsv.gz"), path("wes_${subshard_num}.raw.tsv.gz.tbi"), val(subshard_num), path(vcf_File),val(chr_name), emit: pre_proc_1
   path("${subshard_num}.p11.vcf.gz")
  
   script:
