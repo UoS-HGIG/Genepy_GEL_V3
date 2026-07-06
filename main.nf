@@ -62,7 +62,7 @@ workflow {
         chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
     .filter { f ->
         def n = f.parent.name.replace('subshard-', '')
-        n in ['14', '15', '16', '17']
+        n in ['14', '15']
     }
     .map { vcf_file ->
         def shard_num       = shard_number.toString()
