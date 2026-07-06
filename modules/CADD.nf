@@ -20,7 +20,7 @@ process CADD_score {
     
     bcftools view -G ${vcf_File} -Ov  --threads $task.cpus -o p1.vcf
     st=\$(awk '\$0 !~ /^#/ {print NR; exit}' p1.vcf)
-    awk -F'\t' '$0 !~ /^#/ {print $1; exit}' p1.vcf > cadd_chr.txt
+    
     awk -F"\t" -v OFS="\t" -v st="\$st" '
       NR < st {print; next}
       \$1 ~ /^#/ {print; next}
