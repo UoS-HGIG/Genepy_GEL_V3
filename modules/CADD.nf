@@ -10,7 +10,7 @@ process CADD_score {
  
   output:
   tuple val(shard_num),path("p1.vcf"), path("wes_${subshard_num}.raw.tsv.gz"), path("wes_${subshard_num}.raw.tsv.gz.tbi"), val(subshard_num), path(vcf_File), emit: pre_proc_1
-  val(chr_name), emit: chr_name
+  path("cadd_chr.txt"), emit: chr_name
   path("${subshard_num}.p11.vcf.gz")
  
   script:
@@ -21,7 +21,7 @@ process CADD_score {
     
     bcftools view -G ${vcf_File} -Ov  --threads $task.cpus -o p1.vcf
     st=\$(awk '\$0 !~ /^#/ {print NR; exit}' p1.vcf)
-    chr_name=$(awk -F'\t' '$0 !~ /^#/ {print $1; exit}' p1.vcf)
+    awk -F'\t' '$0 !~ /^#/ {print $1; exit}' p1.vcf > cadd_chr.txt
     awk -F"\t" -v OFS="\t" -v st="\$st" '
       NR < st {print; next}
       \$1 ~ /^#/ {print; next}
