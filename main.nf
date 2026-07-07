@@ -39,8 +39,8 @@ workflow {
      
         def shard_dir_name = file(params.shard_path).name
         def shard_number = (shard_dir_name =~ /shard-(\d+)/)[0][1]
-        
-        def shard_path_pattern = "${params.shard_path}/subshard-*/dragen.vcf.gz"
+        def target_chr = params.chr
+        def shard_path_pattern = "${params.shard_path}/shard-*/subshard-*/dragen.vcf.gz"
        println "START :)"
        println "Shard list: $shard_number"
 
@@ -48,33 +48,33 @@ workflow {
         def shard_map = [:]
 
         file(params.multiallelic_shards_bed)
-            .eachLine { line ->
-                if( !line?.trim() ) return
+    .eachLine { line ->
+        if( !line?.trim() ) return
 
-                def cols = line.split('\\t| +')
-                def chr_name = cols[0]
-                def shard    = cols[4].toString()
-                def subshard = cols[5].toString()
+        def cols = line.split('\\t| +')
+        def chr_name = cols[0]
+        def shard    = cols[4].toString()
+        def subshard = cols[5].toString()
 
-                shard_map["${shard}_${subshard}"] = chr_name
-            }   
-       
-        chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
-    .filter { f ->
-        def n = f.parent.name.replace('subshard-', '')
-        n in ['14', '15']
+        if( chr_name == target_chr ) {
+            shard_map["${shard}_${subshard}"] = chr_name
+        }
     }
+
+chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
     .map { vcf_file ->
-        def shard_num       = shard_number.toString()
+        def shard_num       = vcf_file.parent.parent.name.replace('shard-', '')
         def subshard_number = vcf_file.parent.name.replace('subshard-', '')
         def chr_name        = shard_map["${shard_num}_${subshard_number}"]
 
-        if( !chr_name ) {
-            throw new IllegalArgumentException("No chromosome mapping found for shard=${shard_num}, subshard=${subshard_number}")
+        if( chr_name ) {
+            tuple(shard_num, subshard_number, chr_name, vcf_file, file(params.annotations_cadd))
+        } else {
+            null
         }
-
-        tuple(shard_num, subshard_number, chr_name, vcf_file, file(params.annotations_cadd))
-    }.view()
+    }
+    .filter { it != null }
+    .view()
   //          tuple(shard_num, vcf_n, f, file(params.annotations_cadd))
   //      }
       CADD_score(chrx)
