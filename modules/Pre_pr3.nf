@@ -9,6 +9,7 @@ process Pre_processing_3 {
   output:
   path("metafiles15_*"), emit: meta_files15
   path("metafiles20_*"), emit: meta_files20
+  val(shard_num), emits: shard_num
   //path("metafilesALL_*"), emit: meta_filesALL
   //tuple path("metafilesALL"),path("metafiles15"),path("metafiles20"), emit: folders
   //path("*")
