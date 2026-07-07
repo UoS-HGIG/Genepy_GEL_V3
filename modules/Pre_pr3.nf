@@ -7,9 +7,9 @@ process Pre_processing_3 {
   tuple path("c1"), path("c2"), path("c3"), path("c4"),path("c5"),path("c5a"),path("c5b"),path("gene.lst"),path("f5_dedup.vcf.gz"),path("header_meta"), val(shard_num),val(subshard_num)
   path(template)
   output:
-  path("metafiles15_*"), emit: meta_files15
-  path("metafiles20_*"), emit: meta_files20
-  val(shard_num), emits: shard_num
+  tuple val(shard_num), path("metafiles15_*"), emit: meta_files15
+  tuple val(shard_num), path("metafiles20_*"), emit: meta_files20
+ 
   //path("metafilesALL_*"), emit: meta_filesALL
   //tuple path("metafilesALL"),path("metafiles15"),path("metafiles20"), emit: folders
   //path("*")
