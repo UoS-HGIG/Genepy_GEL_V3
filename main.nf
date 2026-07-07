@@ -38,11 +38,11 @@ workflow {
          """.stripIndent()
      
         def shard_dir_name = file(params.shard_path).name
-        def shard_number = (shard_dir_name =~ /shard-(\d+)/)[0][1]
+        
         def target_chr = params.chr
         def shard_path_pattern = "${params.shard_path}/shard-*/subshard-*/dragen.vcf.gz"
        println "START :)"
-       println "Shard list: $shard_number"
+      
 
 
         def shard_map = [:]
