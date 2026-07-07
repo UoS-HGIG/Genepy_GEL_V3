@@ -85,9 +85,17 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
       Pre_processing_2(Pre_processing_1.out.main,params.header_meta,params.Genecode_p50_bed,params.templates)
       Pre_processing_3(Pre_processing_2.out.main,params.templates)     
 ////     // def meta15 = Pre_processing_3.out.meta_files15.collect().map { genes_list -> ["15",shard_number, genes_list] }
-      def meta15 = Pre_processing_3.out.meta_files15.collect().map {genes_list -> ["15",shard_number, genes_list] }.view()
+      def meta15 = Pre_processing_3.out.meta_files15
+        .collect()
+        .map { items ->
+            items.collect { item -> ["15", item[0], item[1]] }
+        }.view()
 ////
-      def meta20 = Pre_processing_3.out.meta_files20.collect().map { genes_list -> ["20",shard_number, genes_list] }
+      def meta20 = Pre_processing_3.out.meta_files20
+        .collect()
+        .map { items ->
+            items.collect { item -> ["20", item[0], item[1]] }
+        }
 ////      def metaALL = Pre_processing_3.out.meta_filesALL.collect().map { genes_list -> ["ALL",shard_number, genes_list] }
       x_combo= meta15.concat(meta20).view()
       Reatt_Genes(x_combo)
