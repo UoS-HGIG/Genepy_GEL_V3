@@ -10,7 +10,6 @@ process site_qc_cadd15 {
   path(plugin3)
   output:
   tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile),path("combined.bed"), emit: site_qc_out
-  path("has_variants.txt"), emit: has_variants
   path("all_regions.bed")
   path("siteqc_pass_variants.bed")
   path("wes_cadd15.bed")
@@ -49,13 +48,6 @@ echo "All region bed"
 awk 'BEGIN{OFS="\\t"} \$1 !~ /^#/ && NF>=3 {print \$1, \$2, \$3}' "all_regions.bed" > "all_regions.clean.bed"
 head "all_regions.clean.bed"
 bedtools intersect -u -a "all_regions.clean.bed"  -b "siteqc_pass_variants.bed"  > "combined.bed"
-if [ ! -s "combined.bed" ]; then
-    echo 0 > has_variants.txt
-elif [ "$(grep -vc '^#' "combined.bed" || true)" -eq 0 ]; then
-    echo 0 > has_variants.txt
-else
-    echo 1 > has_variants.txt
-fi
 
     """
 }
