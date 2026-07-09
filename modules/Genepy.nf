@@ -5,7 +5,7 @@ process Genepy_score {
     label "Genepy_score"
     maxForks 20
     input:
-    tuple path(path1),path(chr),val(cadd),path(genepy),path(kary),path(dup)
+    tuple path(path1),val(chr),val(cadd),path(genepy),path(kary),path(dup)
     // path(genepy) 
 
     output:
