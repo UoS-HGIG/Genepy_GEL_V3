@@ -74,7 +74,6 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
         }
     }
     .filter { it != null }
-    .view()
   //          tuple(shard_num, vcf_n, f, file(params.annotations_cadd))
   //      }
       CADD_score(chrx)
@@ -97,7 +96,7 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
  ////        .map { item,file -> ["20", item, file] }.collect().view()
         
 
-      x_combo= meta15.concat(meta20).view()
+      x_combo= meta15.concat(meta20)
       Reatt_Genes(x_combo)
    
 
@@ -117,7 +116,7 @@ def dups = flatDups.map { d ->
     def baseKey = fullKey?.replace('dup', 'metafiles')
     tuple(baseKey, d)                                
 }
-dups.collect().view()
+dups.collect()
 
 def met_ = metas
     .combine(dups)                       // produce all pairs
@@ -147,7 +146,7 @@ def met_ = metas
 
 
      //Genepy_score(dup_)
- //    Genepy_score(met_)
+     Genepy_score(met_)
 }
 workflow.onComplete {
    println ( workflow.success ? """
