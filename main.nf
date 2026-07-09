@@ -91,13 +91,12 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
 ////     // def meta15 = Pre_processing_3.out.meta_files15.collect().map { genes_list -> ["15",shard_number, genes_list] }
       def meta15 = Pre_processing_3.out.meta_files15
         .collect()
-        .map { item -> ["15", item[0], item[1]] }
-        }.view()
+        .map { item -> ["15", item[0], item[1]] }.view()
 ////
       def meta20 = Pre_processing_3.out.meta_files20
         .collect()
-         .map { item -> ["20", item[0], item[1]] }
-        }
+         .map { item -> ["20", item[0], item[1]] }.view()
+        
 ////      def metaALL = Pre_processing_3.out.meta_filesALL.collect().map { genes_list -> ["ALL",shard_number, genes_list] }
       x_combo= meta15.concat(meta20).view()
       Reatt_Genes(x_combo)
