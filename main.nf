@@ -90,12 +90,10 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
       Pre_processing_3(Pre_processing_2.out.main,params.templates)     
 ////     // def meta15 = Pre_processing_3.out.meta_files15.collect().map { genes_list -> ["15",shard_number, genes_list] }
       def meta15 = Pre_processing_3.out.meta_files15
-        .collect()
-        .map { item,file -> ["15", item, file] }.view()
+        .map { item,file -> ["15", item, file] }.collect().view()
 ////
       def meta20 = Pre_processing_3.out.meta_files20
-        .collect()
-         .map { item,file -> ["20", item, file] }.view()
+         .map { item,file -> ["20", item, file] }.collect().view()
         
 
       x_combo= meta15.concat(meta20).view()
