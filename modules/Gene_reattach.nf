@@ -1,11 +1,11 @@
 process Reatt_Genes {
-    publishDir "${params.outDir}/${shard_number}", mode: "copy", overwrite: true
+    publishDir "${params.outDir}/${chr}", mode: "copy", overwrite: true
     //maxForks 10
     tag "Reatt_Genes"
     
     label "Reatt_Genes"
     input:
-    tuple val(cadd),val(shard_number),path(folder_paths)
+    tuple val(cadd),val(chr),path(folder_paths)
     //tuple path("metafilesALL"),path("metafiles15"),val("metafiles20")
     output:
     path(folder_paths), emit: path
@@ -18,7 +18,7 @@ process Reatt_Genes {
     OUTPUT_FOLDER="dup${cadd}"
     mkdir -p "\${OUTPUT_FOLDER}"
     touch "\${OUTPUT_FOLDER}/.keep"
-    duplicated_genes="${shard_number}_${cadd}_dup.lst"
+    duplicated_genes="${chr}_${cadd}_dup.lst"
     > "\$duplicated_genes"
     set -u
     declare -a FOLDERS
