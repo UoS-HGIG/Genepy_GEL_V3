@@ -63,6 +63,7 @@ cut -f 4 -d' ' p1_u|awk -F"," '{OFS=FS}{for (i=1;i<=NF;i++) if ($i ~/\*/) $i="*|
 
 ##allele funtional consequence
 cut -f 2 -d'|' c_u  >c2
+echo "##fileformat=VCFv4.2" > f61.vcf
 cut -f 1-8 f6 >> f61.vcf
 ##gene with ensemblID; Note: there are 806 x-genes crossing chunks
 
@@ -71,12 +72,12 @@ cut -f 1-8 f6 >> f61.vcf
 #######################################new modification without IBD.GWAS
 #bedtools intersect \
 #        -wao \
-#        -a p1.vcf \
+#        -a f61.vcf \
 #        -b p50.bed IBD.bed |\
 #        cut -f 1-5,13 >p1.bed
 bedtools intersect \
         -wao \
-        -a p1.vcf \
+        -a f61.vcf \
         -b p50.bed |\
         cut -f 1-5,12 >p1.bed
 datamash -g 1,2,3,4,5 collapse 6 <p1.bed |\
