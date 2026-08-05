@@ -5,7 +5,7 @@ process VEP_score {
   label "VEP_score"
   
   input:
-  tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile), path("combined1.bed")
+  tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile), path("combined.bed")
   path(homos_vep)
   path(vep_plugins)
   path(plugin1)
@@ -26,7 +26,6 @@ process VEP_score {
 bgzip -c "p1.vcf" > "p1.vcf.gz"
 tabix -p vcf "p1.vcf.gz"
 echo "intersect p1 & WG"
-sort "combined1.bed" | uniq > "combined.bed"
 bcftools view -R "combined.bed" -O z  --threads $task.cpus -o "filtered_cadd15.vcf.gz" "p1.vcf.gz"
 tabix -p vcf "filtered_cadd15.vcf.gz"
 
