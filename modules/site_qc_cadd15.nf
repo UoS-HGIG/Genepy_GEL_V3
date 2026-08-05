@@ -47,7 +47,7 @@ head "all_regions.bed"
 echo "All region bed"
 awk 'BEGIN{OFS="\\t"} \$1 !~ /^#/ && NF>=3 {print \$1, \$2, \$3}' "all_regions.bed" > "all_regions.clean.bed"
 head "all_regions.clean.bed"
-bedtools intersect -u -a "all_regions.clean.bed"  -b "siteqc_pass_variants.bed"  > "combined.bed"
+bedtools intersect -u -a "all_regions.clean.bed"  -b "siteqc_pass_variants.bed"  > "combined1.bed"
 
     """
 }
