@@ -13,6 +13,7 @@ process site_qc_cadd15 {
   path("all_regions.bed")
   path("siteqc_pass_variants.bed")
   path("wes_cadd15.bed")
+  path("combined1.bed")
   script:
   
   
