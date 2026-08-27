@@ -29,7 +29,7 @@ echo "intersect p1 & WG"
 bcftools view -R "cadd15.bed" -O z  --threads $task.cpus -o "filtered_cadd15a.vcf.gz" "p1.vcf.gz"
 tabix -p vcf "filtered_cadd15a.vcf.gz"
 ##filter via variant-based approach for variant passed qc from siteqc file
-bcftools isec -c none -p dir -n=2 -w1 "siteqc_pass.vcf" filtered_cadd15a.vcf.gz -o "filtered_cadd15.vcf.gz"
+bcftools isec -c none -n=2 -w1 -O z --threads $task.cpus -o "filtered_cadd15.vcf.gz" "filtered_cadd15a.vcf.gz" "siteqc_pass.vcf.gz"
 tabix -p vcf "filtered_cadd15.vcf.gz"
 echo "VEP start"
     vep -i "filtered_cadd15.vcf.gz" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --plugin CADD,${plugin1},${plugin2},"wes.tsv.gz" --af_gnomade --af_gnomadg -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
