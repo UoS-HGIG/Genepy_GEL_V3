@@ -5,7 +5,7 @@ process VEP_score {
   label "VEP_score"
   
   input:
-  tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile), path("combined.bed")
+  tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile), path("filtered_cadd15.vcf.gz")
   path(homos_vep)
   path(vep_plugins)
   path(plugin1)
@@ -21,16 +21,16 @@ process VEP_score {
   
     """
 
-
-bgzip -c "p1.vcf" > "p1.vcf.gz"
-tabix -p vcf "p1.vcf.gz"
-echo "intersect p1 & WG"
-##filter via interval-based approach for variant with CADD phred>=15
-bcftools view -R "cadd15.bed" -O z  --threads $task.cpus -o "filtered_cadd15a.vcf.gz" "p1.vcf.gz"
-tabix -p vcf "filtered_cadd15a.vcf.gz"
-##filter via variant-based approach for variant passed qc from siteqc file
-bcftools isec -c none -n=2 -w1 -O z --threads $task.cpus -o "filtered_cadd15.vcf.gz" "filtered_cadd15a.vcf.gz" "siteqc_pass.vcf.gz"
 tabix -p vcf "filtered_cadd15.vcf.gz"
+####bgzip -c "p1.vcf" > "p1.vcf.gz"
+####tabix -p vcf "p1.vcf.gz"
+####echo "intersect p1 & WG"
+####filter via interval-based approach for variant with CADD phred>=15
+#####bcftools view -R "cadd15.bed" -O z  --threads $task.cpus -o "filtered_cadd15a.vcf.gz" "p1.vcf.gz"
+#####tabix -p vcf "filtered_cadd15a.vcf.gz"
+#####filter via variant-based approach for variant passed qc from siteqc file
+#####bcftools isec -c none -n=2 -w1 -O z --threads $task.cpus -o "filtered_cadd15.vcf.gz" "filtered_cadd15a.vcf.gz" "siteqc_pass.vcf.gz"
+#####tabix -p vcf "filtered_cadd15.vcf.gz"
 echo "VEP start"
     vep -i "filtered_cadd15.vcf.gz" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --plugin CADD,${plugin1},${plugin2},"wes.tsv.gz" --af_gnomade --af_gnomadg -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
 echo "VEP done"
