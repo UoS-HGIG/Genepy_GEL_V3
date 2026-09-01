@@ -11,7 +11,7 @@ process site_qc_cadd15 {
   output:
   tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile),path("filtered_cadd15.vcf.gz"), emit: site_qc_out
   path("all_regions.clean.bed")
-path("siteqc_pass.vcf.gz")
+  path("siteqc_pass.vcf.gz")
   path("wes_cadd15.bed")
   script:
   
