@@ -47,6 +47,25 @@ if [[ "${chr_name}" == "chrX" || "${chr_name}" == "X" ]]; then
   fi
 echo "bcftools filteration step has done"
 zcat "siteqc_pass.vcf.gz" | tail
+
+##convert siteqc vcf to multiallelic vcf
+bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%INFO/SOURCE_RECORD\\n' "siteqc_pass.vcf.gz" \\
+| awk -v OFS='\\t' '{
+    if (\$5 != "." && \$5 != "") { split(\$5, a, "|"); print a[1], a[2], a[3], a[4] }
+    else                        { print \$1, \$2, \$3, \$4 }
+  }' \\
+| sort -u | sort -k1,1 -k2,2n > "siteqc_pass_multi_sites.tsv"
+
+# the two split rows of a multi-allelic locus carry the same SOURCE_RECORD,
+# so "sort -u" collapses them back to the single record held in p1
+
+bcftools view -h "p1.vcf.gz" | grep -E '^##(fileformat|contig|reference)' > "siteqc_pass.multi.vcf"
+printf '#CHROM\\tPOS\\tID\\tREF\\tALT\\tQUAL\\tFILTER\\tINFO\\n' >> "siteqc_pass.multi.vcf"
+awk -v OFS='\\t' '{print \$1, \$2, ".", \$3, \$4, ".", ".", "."}' "siteqc_pass_multi_sites.tsv" >> "siteqc_pass.multi.vcf"
+
+bgzip -f "siteqc_pass.multi.vcf"
+tabix -p vcf "siteqc_pass.multi.vcf.gz"
+echo "site QC file restored to multi-allelic representation"
 ##head "wes_cadd15.bed"
 head ${plugin3}
 bgzip -c "p1.vcf" > "p1.vcf.gz"
@@ -60,7 +79,7 @@ head "all_regions.clean.bed"
 
 bcftools view -R "all_regions.clean.bed" -O z  --threads $task.cpus -o "filtered_cadd15a.vcf.gz" "p1.vcf.gz"
 tabix -p vcf "filtered_cadd15a.vcf.gz"
-bcftools isec -c none -n=2 -w1 -O z --threads $task.cpus -o "filtered_cadd15.vcf.gz" "filtered_cadd15a.vcf.gz" "siteqc_pass.vcf.gz"
+bcftools isec -c none -n=2 -w1 -O z --threads $task.cpus -o "filtered_cadd15.vcf.gz" "filtered_cadd15a.vcf.gz" "siteqc_pass.multi.vcf.gz"
 tabix -p vcf "filtered_cadd15.vcf.gz"
 
     """
