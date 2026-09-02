@@ -58,7 +58,8 @@ bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%INFO/SOURCE_RECORD\\n' "siteqc
 
 # the two split rows of a multi-allelic locus carry the same SOURCE_RECORD,
 # so "sort -u" collapses them back to the single record held in p1
-
+bgzip -c "p1.vcf" > "p1.vcf.gz"
+tabix -p vcf "p1.vcf.gz"
 bcftools view -h "p1.vcf.gz" | grep -E '^##(fileformat|contig|reference)' > "siteqc_pass.multi.vcf"
 printf '#CHROM\\tPOS\\tID\\tREF\\tALT\\tQUAL\\tFILTER\\tINFO\\n' >> "siteqc_pass.multi.vcf"
 awk -v OFS='\\t' '{print \$1, \$2, ".", \$3, \$4, ".", ".", "."}' "siteqc_pass_multi_sites.tsv" >> "siteqc_pass.multi.vcf"
