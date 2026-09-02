@@ -13,6 +13,9 @@ process site_qc_cadd15 {
   path("all_regions.clean.bed")
   path("siteqc_pass.vcf.gz")
   path("wes_cadd15.bed")
+  path("siteqc_pass.multi.vcf.gz")
+  path("filtered_cadd15a.vcf.gz")
+  path("siteqc_pass_multi_sites.tsv")
   script:
   
   
