@@ -48,7 +48,7 @@ paste p1 csq | awk '$5 !~/,/' | cut -f 1-7,9 >p1_s
 awk '$5 ~/,/' p1 >p1_m
 
 paste p1 csq | awk '$5 ~/,/' > p1_order_1
-paste p1 csq | awk '$5 ~/,/' |while read i; do echo $i | cut -f 5 -d' ' | sed 's/\,/\n/g' > j; echo '*' > k; echo $i | cut -f 9 -d' ' | sed 's/\,/\n/g' >> k ; cat j |while read l; do grep -w "$l" k; done > x1; c1=$(wc -l x1 | cut -f 1 -d' '); c2=$(wc -l j | cut -f 1 -d' '); if [ "$c1" -eq "$c2" ]; then paste -sd',' x1; else paste -sd',' j; fi; done > order
+paste p1 csq | awk '$5 ~/,/' |while read i; do echo $i | cut -f 5 -d' ' | sed 's/\,/\n/g' > j; echo '*' > k; echo $i | cut -f 9 -d' ' | sed 's/\,/\n/g' >> k ; cat j |while read l; do grep -w "^$l" k; done > x1; c1=$(wc -l x1 | cut -f 1 -d' '); c2=$(wc -l j | cut -f 1 -d' '); if [ "$c1" -eq "$c2" ]; then paste -sd',' x1; else paste -sd',' j; fi; done > order
 
 paste p1_m order |awk '$9 !~/\|/' |cut -f 5 > alt_re
 paste p1_m order |awk '$9 !~/\|/' |cut -f 1-8 > p1_re
@@ -56,7 +56,7 @@ paste p1_m order |awk '$9 !~/\|/' |cut -f 8 | awk -F";" '{for (i=1;i<=NF;i++) if
 paste p1_m order |awk '$9 ~/\|/' |cut -f 1-7,9 > p1_1
 
 ##repeat
-paste alt_re csq_re |sed 's/CSQ\=//g' |while read i; do echo $i | cut -f 1 -d' ' | sed 's/\,/\n/g' | awk '{if (length($1)==1) print"--"; else print$i}' > j; echo '*' >k; echo $i | cut -f 2 -d' ' | sed 's/\,/\n/g' >> k ; cat j |while read l; do m=${l:1};grep -w "$m" k; done > x1 ; c1=$(wc -l x1 | cut -f 1 -d' '); c2=$(wc -l j | cut -f 1 -d' '); if [ "$c1" -eq "$c2" ]; then paste -sd',' x1; else paste -sd',' j; fi; done > order_re
+paste alt_re csq_re |sed 's/CSQ\=//g' |while read i; do echo $i | cut -f 1 -d' ' | sed 's/\,/\n/g' | awk '{if (length($1)==1) print"--"; else print$i}' > j; echo '*' >k; echo $i | cut -f 2 -d' ' | sed 's/\,/\n/g' >> k ; cat j |while read l; do m=${l:1};grep -w "^$m" k; done > x1 ; c1=$(wc -l x1 | cut -f 1 -d' '); c2=$(wc -l j | cut -f 1 -d' '); if [ "$c1" -eq "$c2" ]; then paste -sd',' x1; else paste -sd',' j; fi; done > order_re
 
 paste p1_re order_re |awk '$9 ~/,/' |cut -f 1-7,9 > p1_2
 
