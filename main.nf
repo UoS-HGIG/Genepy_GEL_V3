@@ -32,7 +32,6 @@ workflow {
           ===================================
      G E N O M I C --------------- M E D I C I N E 
                          UoS
-                     Iman Nazari
           ===================================
           Samples         : ${params.shard_path}
          """.stripIndent()
