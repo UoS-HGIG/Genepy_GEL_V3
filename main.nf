@@ -61,10 +61,10 @@ workflow {
     }
 
 chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
-//.filter { vcf_file ->
-//    vcf_file.parent.parent.name == "shard-97" &&
-//    vcf_file.parent.name in ["subshard-15", "subshard-16"]
-// }
+.filter { vcf_file ->
+    vcf_file.parent.parent.name == "shard-92" &&
+    vcf_file.parent.name in ["subshard-1", "subshard-2","subshard-3","subshard-4","subshard-5"]
+ }
     .map { vcf_file ->
         def shard_num       = vcf_file.parent.parent.name.replace('shard-', '')
         def subshard_number = vcf_file.parent.name.replace('subshard-', '')
