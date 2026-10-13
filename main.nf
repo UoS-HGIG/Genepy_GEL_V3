@@ -131,7 +131,7 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
 ////    }
 ////    .view()
 ////     Genepy_score(met_)
-////}
+}
 workflow.onComplete {
    println ( workflow.success ? """
        Pipeline execution summary
