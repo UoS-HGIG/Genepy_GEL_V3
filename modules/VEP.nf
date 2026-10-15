@@ -14,7 +14,7 @@ process VEP_score {
   path(genomad_indx2)
   path(base_site_qc)
   output:
-  // tuple path("${subshard_num}.full_cadd15.vcf.gz"), val(shard_num),val(subshard_num) ,emit: vep_out
+   tuple path("${subshard_num}.full_cadd15.vcf.gz"), val(shard_num),val(subshard_num) ,emit: vep_out
    path("${subshard_num}.p1.vep.vcf.gz"),emit: vep_out2
   script:
   
@@ -38,14 +38,15 @@ echo "VEP done"
  
 
   ##tabix -p vcf "${subshard_num}.p1.vep.vcf"
-  bgzip -c "${subshard_num}.p1.vep.vcf" > "${subshard_num}.p1.vep.vcf.gz"
+   bgzip -c "${subshard_num}.p1.vep.vcf" > "${subshard_num}.p1.vep.vcf.gz"
   
-####  tabix -p vcf "${subshard_num}.p1.vep.vcf.gz"
-####  tabix -p vcf "${vcfFile}"
-#### echo "3"
-####    bcftools isec -n=2 -w1 -c both -Oz  -o "${subshard_num}.isec_cadd15.vcf.gz" ${vcfFile}  "${subshard_num}.p1.vep.vcf.gz"
-####    tabix -p vcf "${subshard_num}.isec_cadd15.vcf.gz"
-####    bcftools annotate -a   "${subshard_num}.p1.vep.vcf.gz" -c '+CSQ'  -Oz -o "${subshard_num}.full_cadd15.vcf.gz" "${subshard_num}.isec_cadd15.vcf.gz"
-####    bcftools index -f "${subshard_num}.full_cadd15.vcf.gz"
+   tabix -p vcf "${subshard_num}.p1.vep.vcf.gz"
+   tabix -p vcf "${vcfFile}"
+   echo "3"
+   ## bcftools isec -n=2 -w1 -c both -Oz  -o "${subshard_num}.isec_cadd15.vcf.gz" ${vcfFile}  "${subshard_num}.p1.vep.vcf.gz"
+   bcftools isec -n=2 -w1 -c both -Ou "${vcfFile}" "${subshard_num}.p1.vep.vcf.gz" | bcftools annotate -a "${subshard_num}.p1.vep.vcf.gz" -c '+CSQ' --threads 8 -Oz -o "${subshard_num}.full_cadd15.vcf.gz" 
+ ###  tabix -p vcf  "${subshard_num}.full_cadd15.vcf.gz"
+   ### bcftools annotate -a   "${subshard_num}.p1.vep.vcf.gz" -c '+CSQ'  -Oz -o "${subshard_num}.full_cadd15.vcf.gz" "${subshard_num}.isec_cadd15.vcf.gz"
+    bcftools index -f "${subshard_num}.full_cadd15.vcf.gz"
     """
 }
