@@ -15,7 +15,7 @@ process Pre_processing_2 {
   path("f6")
   path("p1")
   path("alt")
-  //path("c")
+  path("cadd_missing.log")
   //path("csq")
   //path("p1_s")
   //path("p1_m")
@@ -45,6 +45,6 @@ process Pre_processing_2 {
     cat ${Genecode_p50_bed} > p50.bed
     ## bgzip -c "f5.vcf" > f5.vcf.gz
     bcftools view -h f5.vcf.gz --threads $task.cpus | grep -v "##" | cut -f 10- >p
-    ./pre_1.sh
+    ./pre_1g_v2.sh
     """
 }
