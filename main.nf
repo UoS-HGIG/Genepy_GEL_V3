@@ -88,8 +88,8 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
 //        empty: combined_bed.size() == 0
 //    }
       VEP_score(site_qc_cadd15.out.site_qc_out,params.homos_vep,params.vep_plugins,params.plugin1,params.plugin2,params.genomad_indx1,params.genomad_indx2,params.base_site_qc)
-////      Pre_processing_1(VEP_score.out.vep_out)
-////      Pre_processing_2(Pre_processing_1.out.main,params.header_meta,params.gene_code_bed,params.templates)
+      Pre_processing_1(VEP_score.out.vep_out)
+      Pre_processing_2(Pre_processing_1.out.main,params.header_meta,params.gene_code_bed,params.templates)
 ////      Pre_processing_3(Pre_processing_2.out.main,params.templates)     
 ////      def meta15 = Pre_processing_3.out.meta_files15.collect().map { genes_list -> ["15",params.chr, genes_list] }
 ////      def meta20 = Pre_processing_3.out.meta_files20.collect().map { genes_list -> ["20",params.chr, genes_list] }
