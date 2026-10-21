@@ -39,8 +39,8 @@ process Pre_processing_2 {
     """
     REAL_PATH1=\$(readlink -f ${template})
     ls \$REAL_PATH1
-    cp \$REAL_PATH1/pre_1.sh ./pre_1.sh
-    chmod +x ./pre_1.sh
+    cp \$REAL_PATH1/pre_1g_v2.sh ./pre_1g_v2.sh
+    chmod +x ./pre_1g_v2.sh
     cat ${header_meta} > meta_CADD_head
     cat ${Genecode_p50_bed} > p50.bed
     ## bgzip -c "f5.vcf" > f5.vcf.gz
