@@ -1,3 +1,41 @@
+/*
+    Module: Pre_processing_2
+    Purpose:
+        Extract per-allele variant annotations from the VEP CSQ field and
+        prepare the information required to build per-gene matrices.
+
+    Inputs:
+        - Genotype-QC-filtered VCF (f5.vcf.gz)
+        - Header metadata file (header_meta)
+        - GENCODE gene-region BED file (Genecode_p50_bed)
+        - Pipeline templates directory, containing pre_1g_v2.sh
+        - Shard number and subshard number
+
+    Outputs:
+        - Annotation columns c1-c5, plus c5a and c5b
+        - Gene list (gene.lst)
+        - Deduplicated VCF (f5_dedup.vcf.gz)
+        - Header metadata and intermediate files used by later steps
+        - CADD-missing log (cadd_missing.log)
+
+    Key steps:
+        1. Copy the annotation script `pre_1g_v2.sh` from the templates
+           directory into the working directory.
+        2. Prepare the metadata header and GENCODE gene-region BED file.
+        3. Extract the genotype columns from the VCF.
+        4. Run `pre_1g_v2.sh` to parse the VEP CSQ block and extract:
+           - Locus information
+           - Variant consequence
+           - Gene name
+           - Allele frequency
+           - CADD raw score
+
+    Notes:
+        - Most of the annotation logic is implemented in
+          `templates/pre_1g_v2.sh`, not in this Nextflow module.
+        - This module is a key point to review when changing VEP CSQ fields,
+          gnomAD frequency fields, or CADD annotation definitions.
+*/
 process Pre_processing_2 {
   publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
   //maxForks 10
