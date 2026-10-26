@@ -1,3 +1,33 @@
+/*
+    Module: CADD_score
+    Purpose:
+        Annotate indel variants in an aggV3 subshard VCF with CADD 1.6 scores.
+
+    Inputs:
+        - aggV3 subshard VCF
+        - CADD 1.6 annotation directory
+        - Shard number, subshard number, and chromosome name
+
+    Outputs:
+        - Sites-only VCF (p1.vcf)
+        - CADD raw-score TSV for indels (wes_<subshard>.raw.tsv.gz) and its index
+        - Chromosome-normalised, bgzipped and tabixed VCF (<subshard>.p11.vcf.gz)
+
+    Key steps:
+        1. Remove genotype columns using `bcftools view -G` to create a sites-only VCF.
+        2. Remove the `chr` prefix from chromosome names for CADD compatibility.
+        3. Extract indels only.
+        4. Run CADD 1.6 on the indel VCF.
+        5. Index the CADD output with tabix.
+
+    Notes:
+        - SNV CADD scores are not calculated here; they are supplied from a
+          precomputed whole-genome SNV file during the VEP stage.
+        - The CADD output TSV contains: chromosome, position, reference allele,
+          alternate allele, raw score, and PHRED-like score in column 6.
+        - This module prepares variant-level annotations and does not modify
+          genotype data.
+*/
 process CADD_score {
   tag "CADD_score_${shard_num}_${subshard_num}"
   label "CADD_score"
