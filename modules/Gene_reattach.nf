@@ -1,3 +1,38 @@
+/*
+    Module: Reatt_Genes
+    Purpose:
+        Reassemble per-gene `.meta` files that are split across aggV3 shard or
+        subshard boundaries, so that each gene is scored once as a complete unit.
+
+    Inputs:
+        - CADD threshold identifier (`cadd`, currently 15 or 20)
+        - Chromosome name (`chr`)
+        - One or more folders containing per-gene `.meta` files
+
+    Outputs:
+        - Folder containing reassembled `.meta` files for genes found in more
+          than one input folder (dup<cadd>)
+        - List of genes that required reassembly (<chr>_<cadd>_dup.lst)
+
+    Key steps:
+        1. Create an output folder named `dup<cadd>` for the selected CADD
+           threshold.
+        2. Scan every input folder for `.meta` files.
+        3. Group `.meta` files by gene name.
+        4. For genes present in more than one folder, write a single combined
+           `.meta` file:
+           - Copy the header from the first file.
+           - Append the variant rows from all files.
+        5. Record each reassembled gene in the duplicate-gene list.
+
+    Notes:
+        - A gene may span a shard boundary, meaning different parts of the gene
+          are processed in different subshards.
+        - Reassembly prevents such genes from being scored more than once or
+          from being scored using incomplete variant sets.
+        - Genes found in only one input folder are not duplicated and are
+          processed directly by the GenePy module.
+*/
 process Reatt_Genes {
     publishDir "${params.outDir}/${chr}", mode: "copy", overwrite: true
     //maxForks 10
