@@ -1,3 +1,32 @@
+/*
+    Module: Pre_processing_1
+    Purpose:
+        Perform sample-level genotype QC on the VEP-annotated,
+        CADD >= 15 genotype VCF.
+
+    Inputs:
+        - Genotype-bearing VCF with VEP CSQ annotations (full_cadd15.vcf.gz)
+        - Shard number and subshard number
+
+    Outputs:
+        - Genotype-QC-filtered VCF (<shard>_<subshard>_f3.vcf.gz)
+        - Intermediate VCF with allele balance added (f3_1.vcf.gz)
+
+    Key steps:
+        1. Calculate FORMAT/AB (allele balance) as:
+           LAD first value divided by DP.
+        2. Set genotypes to missing when they fail the following criteria:
+           - FORMAT/FT must be PASS.
+           - Either DP >= 8 and AB >= 0.15, or the genotype is homozygous
+             reference (0/0 or 0).
+        3. Compress and index the filtered VCF.
+
+    Notes:
+        - Homozygous-reference genotypes are retained even if they do not meet
+          the depth and allele-balance thresholds.
+        - This module filters genotypes within variants; it does not remove
+          variant sites.
+*/
 process Pre_processing_1 {
   publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
   // maxForks 10
