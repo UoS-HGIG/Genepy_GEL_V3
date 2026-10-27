@@ -45,8 +45,8 @@ process VEP_score {
   tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile), path("filtered_cadd15.vcf.gz")
   path(homos_vep)
   path(vep_plugins)
-  path(plugin2)
-  path(genomad_indx2)
+  path(pre_scored_indels)
+  path(pre_scored_indels_indx)
   path(base_site_qc)
   output:
    tuple path("${subshard_num}.full_cadd15.vcf.gz"), val(shard_num),val(subshard_num) ,emit: vep_out
@@ -57,7 +57,7 @@ process VEP_score {
     """
   tabix -p vcf "filtered_cadd15.vcf.gz"
 echo "VEP start"
-  vep -i "filtered_cadd15.vcf.gz" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --allele_number --plugin CADD,"${plugin2}","wes.tsv.gz" --af_gnomade --af_gnomadg -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
+  vep -i "filtered_cadd15.vcf.gz" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --allele_number --plugin CADD,"${pre_scored_indels}","wes.tsv.gz" --af_gnomade --af_gnomadg -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
 echo "VEP done"
    bgzip -c "${subshard_num}.p1.vep.vcf" > "${subshard_num}.p1.vep.vcf.gz"
    tabix -p vcf "${subshard_num}.p1.vep.vcf.gz"
