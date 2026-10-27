@@ -22,8 +22,8 @@ Each subshard VCF flows through eight processes:
 | 2 | `site_qc_cadd15` | `modules/site_qc_cadd15.nf` | Applies aggV3 site QC (`MEDIAN_DP>=8`, `MEDIAN_GQ>=10`, `MISSINGNESS_RATE<=0.12`; the `_XX`/`_XY` variants on chrX), restricts to positions with CADD phred ≥ 15, and restores the site-QC file to its multi-allelic representation via `INFO/SOURCE_RECORD` so it can be intersected against `p1`. |
 | 3 | `VEP_score` | `modules/VEP.nf` | VEP with the CADD plugin, and `--af_gnomade --af_gnomadg`. The CSQ block is then annotated back onto the genotype-bearing VCF with `bcftools annotate -c '+CSQ'`. |
 | 4 | `Pre_processing_1` | `modules/Pre_pr1.nf` | Genotype QC. Adds `FORMAT/AB` (`LAD[:1]/DP`), then sets to missing any genotype failing `FT=PASS` and `DP>=8 & AB>=0.15`, keeping hom-ref calls regardless. |
-| 5 | `Pre_processing_2` | `modules/Pre_pr2.nf` | Runs `templates/pre_1.sh`: parses the CSQ block into the per-allele annotation columns `c1`–`c5` (locus, consequence, gene, allele frequency, CADD raw), plus `gene.lst`. |
-| 6 | `Pre_processing_3` | `modules/Pre_pr3.nf` | Runs `templates/pre_2.sh`: splits into per-gene `.meta` matrices at two CADD thresholds, `metafiles15_*` (phred ≥ 15) and `metafiles20_*` (phred ≥ 20). |
+| 5 | `Pre_processing_2` | `modules/Pre_pro2.nf` | Runs `templates/Pre_pro2.sh`: parses the CSQ block into the per-allele annotation columns `c1`–`c5` (locus, consequence, gene, allele frequency, CADD raw), plus `gene.lst`. |
+| 6 | `Pre_processing_3` | `modules/Pre_pro3.nf` | Runs `templates/Pre_pro2.sh`: splits into per-gene `.meta` matrices at two CADD thresholds, `metafiles15_*` (phred ≥ 15) and `metafiles20_*` (phred ≥ 20). |
 | 7 | `Reatt_Genes` | `modules/Gene_reattach.nf` | A gene straddling a shard boundary appears in more than one subshard. This concatenates those fragments into `dup15/` and `dup20/` so the gene is scored once, whole. |
 | 8 | `Genepy_score` | `modules/Genepy.nf` | Floors zero/empty frequency columns to `3.98e-6`, then runs `templates/genepy.py` with the karyotype file. Emits `*.meta.txt` per gene. |
 
