@@ -9,7 +9,7 @@
         - CADD indel scores (wes.tsv.gz and index)
         - Original genotype-bearing subshard VCF
         - aggV3 site-QC VCF directory
-        - Additional CADD >= 15 region BED file (plugin3)
+        - Additional CADD >= 15 region BED file (plugin3) 
         - Shard number, subshard number, and chromosome name
 
     Outputs:
@@ -57,15 +57,11 @@ process site_qc_cadd15 {
   
   
     """
-##recommend
-   echo "filter we"
+ echo "retain variants with cadd>=15 from the indels calculated cadd score"
    zcat "wes.tsv.gz" | awk -v OFS='\\t' '
 \$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }' | sort -k1,1 -k2,2n > "wes_cadd15.bed"
-#### tabix -s1 -b2 -e2 "wes_cadd15.bed.gz"
-echo "filter WG.tsv.gz"
-######zcat ${plugin3} | awk -v OFS='\t' '
-######\$0 !~ /^#/ && \$6 >= 15 { print "chr"\$1, \$2-1, \$2 }'| sort -k1,1 -k2,2n  > "cadd15_regions.bed"
-###### tabix -s1 -b2 -e2 "cadd15_regions.bed.gz"
+
+echo "filter the siteqc input file based on the filteration criteria ((MEDIAN_DP_XX>=8) && (MEDIAN_GQ_XX>=10) && (MISSINGNESS_RATE_XX<=0.12))||((MEDIAN_DP_XY>=8) && (MEDIAN_GQ_XY>=10) && (MISSINGNESS_RATE_XY<=0.12)   or for autosome: (MEDIAN_DP>=8) && (MEDIAN_GQ>=10) && (MISSINGNESS_RATE<=0.12)"
 if [[ "${chr_name}" == "chrX" || "${chr_name}" == "X" ]]; then
       echo "chrX detected: using chrX-specific siteqc filter"
       bcftools view \
@@ -88,7 +84,7 @@ if [[ "${chr_name}" == "chrX" || "${chr_name}" == "X" ]]; then
 echo "bcftools filteration step has done"
 zcat "siteqc_pass.vcf.gz" | tail
 
-##convert siteqc vcf to multiallelic vcf
+echo "convert siteqc vcf to multiallelic vcf"
 bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%INFO/SOURCE_RECORD\\n' "siteqc_pass.vcf.gz" \\
 | awk -v OFS='\\t' '{
     if (\$5 != "." && \$5 != "") { split(\$5, a, "|"); print a[1], a[2], a[3], a[4] }
@@ -114,7 +110,7 @@ tabix -p vcf "p1.vcf.gz"
 
 cat "wes_cadd15.bed" ${plugin3} > "all_regions.bed"
 head "all_regions.bed"
-echo "All region bed"
+echo "All region bed "
 awk 'BEGIN{OFS="\\t"} \$1 !~ /^#/ && NF>=3 {print \$1, \$2, \$3}' "all_regions.bed" > "all_regions.clean.bed"
 head "all_regions.clean.bed"
 
@@ -122,6 +118,7 @@ bcftools view -R "all_regions.clean.bed" -O z  --threads $task.cpus -o "filtered
 tabix -p vcf "filtered_cadd15a.vcf.gz"
 bcftools isec -c none -n=2 -w1 -O z --threads $task.cpus -o "filtered_cadd15.vcf.gz" "filtered_cadd15a.vcf.gz" "siteqc_pass.multi.vcf.gz"
 tabix -p vcf "filtered_cadd15.vcf.gz"
+
 
     """
 }
