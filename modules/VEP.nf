@@ -57,36 +57,17 @@ process VEP_score {
   
   
     """
-
-tabix -p vcf "filtered_cadd15.vcf.gz"
-####bgzip -c "p1.vcf" > "p1.vcf.gz"
-####tabix -p vcf "p1.vcf.gz"
-####echo "intersect p1 & WG"
-####filter via interval-based approach for variant with CADD phred>=15
-#####bcftools view -R "cadd15.bed" -O z  --threads $task.cpus -o "filtered_cadd15a.vcf.gz" "p1.vcf.gz"
-#####tabix -p vcf "filtered_cadd15a.vcf.gz"
-#####filter via variant-based approach for variant passed qc from siteqc file
-#####bcftools isec -c none -n=2 -w1 -O z --threads $task.cpus -o "filtered_cadd15.vcf.gz" "filtered_cadd15a.vcf.gz" "siteqc_pass.vcf.gz"
-#####tabix -p vcf "filtered_cadd15.vcf.gz"
+  tabix -p vcf "filtered_cadd15.vcf.gz"
 echo "VEP start"
-   ## vep -i "filtered_cadd15.vcf.gz" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --allele_number --plugin CADD,${plugin1},${plugin2},"wes.tsv.gz" --af_gnomade --af_gnomadg -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
   vep -i "filtered_cadd15.vcf.gz" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --allele_number --plugin CADD,"${plugin2}","wes.tsv.gz" --af_gnomade --af_gnomadg -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
 echo "VEP done"
- 
-
-  ##tabix -p vcf "${subshard_num}.p1.vep.vcf"
    bgzip -c "${subshard_num}.p1.vep.vcf" > "${subshard_num}.p1.vep.vcf.gz"
-  
    tabix -p vcf "${subshard_num}.p1.vep.vcf.gz"
    tabix -p vcf "${vcfFile}"
-   echo "3"
-echo "3"
-
+ echo "adding vep  annotation output to the original vcf file"
     bcftools isec -n=2 -w1 -c both -Oz  -o "${subshard_num}.isec_cadd15.vcf.gz" ${vcfFile}  "${subshard_num}.p1.vep.vcf.gz"
     tabix -p vcf "${subshard_num}.isec_cadd15.vcf.gz"
     bcftools annotate -a   "${subshard_num}.p1.vep.vcf.gz" -c '+CSQ'  -Oz -o "${subshard_num}.full_cadd15.vcf.gz" "${subshard_num}.isec_cadd15.vcf.gz"
     bcftools index -f "${subshard_num}.full_cadd15.vcf.gz"
-
-
     """
 }
