@@ -45,9 +45,7 @@ process VEP_score {
   tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile), path("filtered_cadd15.vcf.gz")
   path(homos_vep)
   path(vep_plugins)
-  path(plugin1)
   path(plugin2)
-  path(genomad_indx1)
   path(genomad_indx2)
   path(base_site_qc)
   output:
