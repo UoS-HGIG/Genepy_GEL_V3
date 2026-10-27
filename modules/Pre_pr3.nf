@@ -51,7 +51,7 @@ process Pre_processing_3 {
     echo "vcf_n: ${shard_num}_${subshard_num}"
 
     REAL_PATH1=\$(readlink -f ${template})
-    cp \$REAL_PATH1/pre_2.sh ./pre_pro3.sh
+    cp \$REAL_PATH1/pre_pro3.sh ./pre_pro3.sh
     chmod +x ./pre_2.sh
     ./pre_pro3.sh "${shard_num}" "${subshard_num}"
     """
