@@ -65,8 +65,8 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
     def shard   = vcf_file.parent.parent.name
     def subshard = vcf_file.parent.name
 
-    // (shard == "shard-77" && subshard == "subshard-3") ||
-(shard == "shard-77" && subshard in ["subshard-3", "subshard-4","subshard-5"])
+    // (shard == "shard-77" && subshard == "subshard-7") ||
+(shard == "shard-77" && subshard in ["subshard-7"])
 }
     .map { vcf_file ->
         def shard_num       = vcf_file.parent.parent.name.replace('shard-', '')
