@@ -247,18 +247,15 @@ def index(data: np.array) -> np.array:
     return int_data.astype("uint8")
 def nan_if(arr, value):
     return np.where(arr == value, np.nan, arr)
-def score_db(
+def variant_scores(
     samples: np.array,
     scores: np.array,
     af: np.array,
-    gpu: bool,
-    gpu_threads_per_block: int,
-    samples_header=None,
-    file_name: str = None,
+    gpu: bool = False,
+    gpu_threads_per_block: int = 256,
     samples_int: np.array = None,
-):
-    ## samples_int can be passed in so the genotype index is built once and reused
-    ## for every CADD cut-off.
+) -> np.array:
+    """Per-variant x per-sample GenePy contributions (rows = variants, cols = samples)."""
     if samples_int is None:
         samples_int = index(samples)
     db1 = np.zeros_like(samples, dtype=float)
@@ -269,10 +266,90 @@ def score_db(
     else:
         db1 = get_score(scores, af, db1, samples_int)
     db1[np.all(samples_int == np.asarray([0.0, 0.0], dtype="uint8"), axis=-1)] = 0.0
-    out1 = np.nansum(nan_if(db1, "0.0"), axis=0)
-    gg = np.array([file_name] * len(samples_header))
-    U = np.vstack((samples_header, out1, gg)).T
-    return U
+    return db1
+
+
+def gene_score_table(db1: np.array, samples_header, label: str, rows: np.array = None) -> np.array:
+    """Sum the per-variant contributions over `rows` (boolean mask; None = all rows)
+    and return the usual 3-column table: sample, score, label."""
+    sub = db1 if rows is None else db1[rows]
+    out1 = np.nansum(sub, axis=0) if sub.shape[0] else np.zeros(db1.shape[1])
+    gg = np.array([label] * len(samples_header))
+    return np.vstack((samples_header, out1, gg)).T
+
+
+def score_db(
+    samples: np.array,
+    scores: np.array,
+    af: np.array,
+    gpu: bool,
+    gpu_threads_per_block: int,
+    samples_header=None,
+    file_name: str = None,
+    samples_int: np.array = None,
+):
+    """Whole-gene score (kept for backwards compatibility)."""
+    db1 = variant_scores(samples, scores, af, gpu, gpu_threads_per_block, samples_int)
+    return gene_score_table(db1, samples_header, file_name)
+
+
+## ---- gene regions --------------------------------------------------------------
+## Both regions come from ONE gene-boundary BED (BED6: chrom, start, end, name, score, strand;
+## the name holds the Ensembl gene ID):
+##   core: the gene boundary.
+##   CRE : +/- flank bp (default 2 kb) around the gene's most upstream TSS (the gene's start
+##         on +, its end on -), minus the gene's own core. In practice this is the flank
+##         upstream of the gene, plus a piece past the 3' end for genes shorter than the flank.
+ENSG_RE = re.compile(r"(ENSG\d+)")
+
+
+def gene_key(text: str):
+    """Version-free Ensembl gene ID found anywhere in `text` (file name or BED name)."""
+    m = ENSG_RE.search(text)
+    return m.group(1) if m else None
+
+
+def norm_chrom(c) -> str:
+    c = str(c)
+    return c[3:] if c.startswith("chr") else c
+
+
+def read_gene_bed(path: str, key: str):
+    """Return (chrom, start, end, strand) of gene `key` from a BED6 gene-boundary file,
+    or None if absent. The strand is taken from column 6."""
+    hits = []
+    with open(path) as f:
+        for line in f:
+            if not line.strip() or line.startswith(("#", "track", "browser")):
+                continue
+            col = line.rstrip("\n").split("\t")
+            if len(col) < 6 or key not in line or gene_key("\t".join(col[3:])) != key:
+                continue
+            if col[5] not in ("+", "-"):
+                sys.exit(f"ERROR: gene BED row for {key} has no strand in column 6: {line.strip()}")
+            hits.append((norm_chrom(col[0]), int(col[1]), int(col[2]), col[5]))
+    if len(hits) > 1:
+        sys.exit(f"ERROR: {key} has {len(hits)} rows in the gene BED; expected one")
+    return hits[0] if hits else None
+
+
+def gene_regions(chrom: str, start: int, end: int, strand: str, flank: int = 2000) -> dict:
+    """core and CRE intervals (BED 0-based, half-open) for one gene.
+    TSS = most upstream base of the gene: `start` on +, `end - 1` on -.
+    CRE = [TSS - flank, TSS + flank + 1) minus [start, end)."""
+    tss = start if strand == "+" else end - 1
+    w0, w1 = max(0, tss - flank), tss + flank + 1
+    cre = [(chrom, a, b) for a, b in ((w0, min(w1, start)), (max(w0, end), w1)) if b > a]
+    return {"core": [(chrom, start, end)], "CRE": cre}
+
+
+def in_regions(chrom: np.array, pos: np.array, intervals) -> np.array:
+    """True where the variant's POS (VCF, 1-based) lies in any interval (BED 0-based)."""
+    mask = np.zeros(len(pos), dtype=bool)
+    for c, start, end in intervals:
+        mask |= (chrom == c) & (pos > start) & (pos <= end)
+    return mask
+
 
 def is_file_empty(file_path):
     return os.path.getsize(file_path) == 0
@@ -314,16 +391,17 @@ def read_head(file_path, n=10):
             head_lines.append(line.strip())  # strip() removes trailing newlines
     return head_lines
  
-def output_meta_name(file_name: str, cadd: str) -> str:
-    """ENSG..._CADD15.meta -> ENSG..._CADD<cadd>.meta (keeps the old per-threshold file names)."""
+def output_meta_name(file_name: str, cadd: str, region: str = None) -> str:
+    """ENSG..._CADD15.meta -> ENSG..._CADD<cadd>[_<region>].meta"""
     m = re.search(r"_CADD\d+\.meta$", file_name)
     stem = file_name[: m.start()] if m else file_name[: -len(".meta")]
-    return f"{stem}_CADD{cadd}.meta"
+    return f"{stem}_CADD{cadd}" + (f"_{region}" if region else "") + ".meta"
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="GenePy: score one CADD15 .meta file at several CADD cut-offs in one pass"
+        description="GenePy: score one CADD15 .meta file at several CADD cut-offs in one pass, "
+        "for the whole gene and, optionally, its core and CRE regions"
     )
     parser.add_argument("meta", help="per-gene .meta file built at the lowest cut-off (CADD15)")
     parser.add_argument("kary", help="karyotype file (sample IDs with XO/XY karyotype)")
@@ -334,6 +412,10 @@ def parse_args():
         choices=sorted(CADD_RAW_THRESHOLDS),
         help="CADD PHRED cut-offs to output (default: 15 20)",
     )
+    parser.add_argument("--gene-bed", help="gene-boundary BED6 with strand, one row per gene "
+                        "(e.g. gencode_v46_core.bed); enables core and CRE scores")
+    parser.add_argument("--cre-flank", type=int, default=2000,
+                        help="CRE half-width around the most upstream TSS, in bp (default 2000)")
     return parser.parse_args()
 
 
@@ -351,30 +433,51 @@ def main():
         print(f"Skipping empty file: {gene}")
         ## (original script did not skip either; behaviour kept)
 
+    # 0. this gene's core and CRE intervals, derived from the gene-boundary BED
+    key = gene_key(file_name)
+    region_iv = {}
+    if args.gene_bed:
+        g = read_gene_bed(args.gene_bed, key)
+        if g is None:
+            print(f"WARNING: {key} not in the gene BED; no core/CRE scores written", file=sys.stderr)
+        else:
+            region_iv = gene_regions(*g, flank=args.cre_flank)
+            print(f"{key}: core {region_iv['core']} | CRE {region_iv['CRE']}")
+
     # 1. read + parse genotypes ONCE (this is the expensive part)
     data = read_meta_file(filepath=gene)
+    chrom = np.array([norm_chrom(c) for c in data.iloc[:, 0].values])
+    pos = data.iloc[:, 1].values.astype(np.int64)
     raw_scores, af, samples, samples_header = format_data(data, xo_xy_samples)
     del data
     gc.collect()
     samples_int = index(samples)
 
-    # 2. score at each CADD cut-off, reusing the parsed genotypes
+    # 2. variant -> region masks (the same for every CADD cut-off)
+    masks = {label: in_regions(chrom, pos, iv) for label, iv in region_iv.items()}
+    counts = " | ".join(f"{label} {int(m.sum())}" for label, m in masks.items())
+    print(f"{key}: variants {len(pos)}" + (f" | {counts}" if counts else ""))
+    if "core" in masks and "CRE" in masks:
+        both = int((masks["core"] & masks["CRE"]).sum())
+        if both:
+            print(f"WARNING: {key}: {both} variant(s) fall in both core and CRE; counted in both",
+                  file=sys.stderr)
+
+    # 3. score at each CADD cut-off: whole gene, then each region, from one per-variant matrix
     for cadd in args.cadd:
         scores = get_scores(raw_scores, min_raw=CADD_RAW_THRESHOLDS[cadd])
         if (np.isnan(scores).sum()) < (scores.shape[0]):  # compute metascores if at least 1 variant
+            db1 = variant_scores(samples, scores, af, samples_int=samples_int)
             out_name = output_meta_name(file_name, cadd)
-            U1 = score_db(
-                samples=samples,
-                scores=scores,
-                af=af,
-                gpu=0,
-                gpu_threads_per_block=0,
-                samples_header=samples_header,
-                file_name=out_name,
-                samples_int=samples_int,
-            )
-            np.savetxt(out_name + ".txt", U1, fmt="%s", delimiter="\t")
+            np.savetxt(out_name + ".txt", gene_score_table(db1, samples_header, out_name),
+                       fmt="%s", delimiter="\t")
             print(f"CADD{cadd}: wrote {out_name}.txt")
+            for label, m in masks.items():
+                out_name = output_meta_name(file_name, cadd, label)
+                np.savetxt(out_name + ".txt", gene_score_table(db1, samples_header, out_name, m),
+                           fmt="%s", delimiter="\t")
+                print(f"CADD{cadd} {label}: wrote {out_name}.txt")
+            del db1
 
     del samples, samples_int, raw_scores, af, samples_header
     gc.collect()

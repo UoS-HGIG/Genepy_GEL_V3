@@ -132,7 +132,7 @@ def met_ = metas
     .view()
      // genepy.py now writes CADD15 and CADD20 from the CADD15 matrices in one pass,
      // so only the CADD15 folders (with dup15) are scored.
-     Genepy_score(met_.filter { it[2] == '15' })
+     Genepy_score(met_.filter { it[2] == '15' }, file(params.gene_bed))
 }
 workflow.onComplete {
    println ( workflow.success ? """
