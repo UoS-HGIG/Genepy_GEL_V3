@@ -7,13 +7,14 @@
     Inputs:
         - Folder(s) containing per-gene `.meta` matrices
         - Chromosome name (`chr`)
-        - CADD threshold identifier (`cadd`, currently 15 or 20)
+        - CADD threshold identifier (`cadd`); only the CADD15 folders are passed in,
+          and genepy.py writes both CADD15 and CADD20 scores from them
         - GenePy Python script (`genepy.py`)
         - Karyotype/sex file (`kary`)
         - Folder of reassembled cross-shard genes (`dup`)
 
     Outputs:
-        - One GenePy output file per gene: `*.meta.txt`
+        - Two GenePy output files per gene: `*_CADD15.meta.txt` and `*_CADD20.meta.txt`
 
     Key steps:
         1. Copy the GenePy Python script into the task working directory.
@@ -36,17 +37,19 @@
           `<outDir>/<chr>/Genepy_score/<cadd>/`.
 */
 process Genepy_score {
-    publishDir "${params.outDir}/${chr}/Genepy_score/${cadd}", mode: "copy", overwrite: true
-    //publishDir "${params.chr}", mode: "copy", overwrite: true
-    tag "Genepy_score_${cadd}"
+    // One task scores every gene at CADD15 and CADD20 from the CADD15 .meta matrices
+    // (CADD20 = same rows with raw CADD < 2.097252 blanked; done inside genepy.py).
+    publishDir "${params.outDir}/${chr}/Genepy_score", mode: "copy", overwrite: true,
+        saveAs: { f -> f.endsWith("_CADD20.meta.txt") ? "20/${f}" : "15/${f}" }
+    tag "Genepy_score_${chr}"
     label "Genepy_score"
     maxForks 20
     input:
     tuple path(path1),val(chr),val(cadd),path(genepy),path(kary),path(dup)
-    // path(genepy) 
 
     output:
-    path("*.meta.txt"),optional: true
+    path("*_CADD15.meta.txt"), optional: true, emit: cadd15
+    path("*_CADD20.meta.txt"), optional: true, emit: cadd20
 
     shell:
     """
@@ -68,12 +71,12 @@ process Genepy_score {
                     echo "Processing \$file from dup folder"
                      awk -F"\\t" '{OFS=FS;for (i=7;i<=16;i++) { if(length(\$i)<1 || \$i ~ /^0+([.0]+)?([eE][+-]?[0-9]+)?\$/) { \$i="6.84e-7";} } print }' "${dup}/\$fname" > "\$fname"
     
-                    python -u ./gp.py "\$fname" ${kary}
+                    python -u ./gp.py "\$fname" ${kary} --cadd 15 20
                 else
                     echo "Processing \$file from chunk folder"
                     awk -F"\\t" '{OFS=FS;for (i=7;i<=16;i++) { if(length(\$i)<1 || \$i ~ /^0+([.0]+)?([eE][+-]?[0-9]+)?\$/) { \$i="6.84e-7";} } print }' "\$file" > "\$fname"
     
-                    python -u ./gp.py "\$fname" ${kary}
+                    python -u ./gp.py "\$fname" ${kary} --cadd 15 20
                     
                 fi
             fi

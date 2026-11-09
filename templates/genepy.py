@@ -26,11 +26,26 @@ def read_meta_file(filepath: str) -> pd.DataFrame:
     return data
 
 
-def get_scores(data: np.array) -> np.array:
+## CADD v1.6 RAW-score cut-offs equivalent to PHRED 15 / 20.
+## These are the same values pre_pro2.sh / pre_1.sh use to build c5a (CADD15) and c5b (CADD20).
+CADD_RAW_THRESHOLDS = {"15": 1.387112, "20": 2.097252}
+
+
+def get_raw_scores(data: np.array) -> np.array:
+    ## raw CADD columns, as read from the .meta file (blank -> NaN)
+    return data[:, 16:25].astype("float")
+
+
+def get_scores(data: np.array, min_raw: float = None) -> np.array:
     ##cadd score; reformat CADD range to 0-1
     ## the UKBB 200k cohort raw variant has CADD16 ranges from -18.793437 to 19.100986 including the prescore and permutated score (GRCh38_v1.6;VEP 100_GRCh38)
-    scores = data[:, 16:25]
-    scores = scores.astype("float")
+    ## `data` may be the full meta matrix or the raw-score block returned by get_raw_scores().
+    ## min_raw: alleles with raw CADD below this are blanked (-> score 0), which is exactly
+    ## what blanking them in c5a/c5b does upstream; this lets one CADD15 .meta give CADD20 too.
+    scores = data[:, 16:25] if data.shape[1] > 9 else data
+    scores = scores.astype("float").copy()
+    if min_raw is not None:
+        scores[scores < min_raw] = np.nan
     scores = (scores - (-19.811548)) / (25.028523 - (-19.811548))
     scores[np.isnan(scores)] = 0
     s0 = scores[:, 0]
@@ -108,8 +123,8 @@ def format_data(data: pd.DataFrame, xo_xy_samples: set) -> Tuple[np.array, np.ar
     data_np = data.to_numpy()
     samples_np = samples_df.to_numpy().astype(str)
 
-    # Compute scores and allele frequencies
-    scores = get_scores(data_np)
+    # Raw CADD block (thresholded per CADD cut-off later) and allele frequencies
+    scores = get_raw_scores(data_np)
     af = get_allele_freq(data_np)
 
     # Normalize "0" → "0/0"
@@ -238,8 +253,14 @@ def score_db(
     af: np.array,
     gpu: bool,
     gpu_threads_per_block: int,
+    samples_header=None,
+    file_name: str = None,
+    samples_int: np.array = None,
 ):
-    samples_int = index(samples)
+    ## samples_int can be passed in so the genotype index is built once and reused
+    ## for every CADD cut-off.
+    if samples_int is None:
+        samples_int = index(samples)
     db1 = np.zeros_like(samples, dtype=float)
     if gpu:
         db1 = get_scores_cuda(
@@ -293,40 +314,71 @@ def read_head(file_path, n=10):
             head_lines.append(line.strip())  # strip() removes trailing newlines
     return head_lines
  
-files_with_paths = sys.argv[1]
-gene=files_with_paths
-file_name = os.path.basename(gene)
-xo_xy_samples = read_karyo_samples(sys.argv[2])
-xo_xy_samples = ""
-print(file_name)
-if file_name.startswith("ENSG") and file_name.endswith('.meta'):
+def output_meta_name(file_name: str, cadd: str) -> str:
+    """ENSG..._CADD15.meta -> ENSG..._CADD<cadd>.meta (keeps the old per-threshold file names)."""
+    m = re.search(r"_CADD\d+\.meta$", file_name)
+    stem = file_name[: m.start()] if m else file_name[: -len(".meta")]
+    return f"{stem}_CADD{cadd}.meta"
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="GenePy: score one CADD15 .meta file at several CADD cut-offs in one pass"
+    )
+    parser.add_argument("meta", help="per-gene .meta file built at the lowest cut-off (CADD15)")
+    parser.add_argument("kary", help="karyotype file (sample IDs with XO/XY karyotype)")
+    parser.add_argument(
+        "--cadd",
+        nargs="+",
+        default=["15", "20"],
+        choices=sorted(CADD_RAW_THRESHOLDS),
+        help="CADD PHRED cut-offs to output (default: 15 20)",
+    )
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    gene = args.meta
+    file_name = os.path.basename(gene)
+    xo_xy_samples = read_karyo_samples(args.kary)
+    xo_xy_samples = ""  # NOTE: kept from the original script - this disables the chrX karyotype fix
     print(file_name)
-    
-##    if is_file_empty(gene):
+    if not (file_name.startswith("ENSG") and file_name.endswith(".meta")):
+        return
+
     if is_file_empty_or_header_only(gene):
         print(f"Skipping empty file: {gene}")
-        ## continue
-   ## head_content = read_head(files_with_paths, n=5)  # Read first 5 lines
-   ## print(head_content)
-    gpu=0
-    meta_file = gene
-    # Extract gene list from the file
-    data = read_meta_file(filepath=meta_file)
-    ##header_data = data.iloc[:10, :10]
+        ## (original script did not skip either; behaviour kept)
 
-# Display the extracted data
-    #print(header_data)
-    scores, af, data, samples_header = format_data(data,xo_xy_samples)
-    #print(f"Gene list from {file_name}:")
-    if (np.isnan(scores).sum()) < (
-       scores.shape[0]):  # compute metascores if at least 1 variant
-       U1 = score_db(
-                    samples=data,
-                    scores=scores,
-                    af=af,
-                    gpu=gpu,
-                    gpu_threads_per_block=0)
+    # 1. read + parse genotypes ONCE (this is the expensive part)
+    data = read_meta_file(filepath=gene)
+    raw_scores, af, samples, samples_header = format_data(data, xo_xy_samples)
+    del data
+    gc.collect()
+    samples_int = index(samples)
 
-       np.savetxt(file_name+ ".txt", U1, fmt="%s", delimiter="\t")
-       del data, scores, af, samples_header
-       gc.collect()
+    # 2. score at each CADD cut-off, reusing the parsed genotypes
+    for cadd in args.cadd:
+        scores = get_scores(raw_scores, min_raw=CADD_RAW_THRESHOLDS[cadd])
+        if (np.isnan(scores).sum()) < (scores.shape[0]):  # compute metascores if at least 1 variant
+            out_name = output_meta_name(file_name, cadd)
+            U1 = score_db(
+                samples=samples,
+                scores=scores,
+                af=af,
+                gpu=0,
+                gpu_threads_per_block=0,
+                samples_header=samples_header,
+                file_name=out_name,
+                samples_int=samples_int,
+            )
+            np.savetxt(out_name + ".txt", U1, fmt="%s", delimiter="\t")
+            print(f"CADD{cadd}: wrote {out_name}.txt")
+
+    del samples, samples_int, raw_scores, af, samples_header
+    gc.collect()
+
+
+if __name__ == "__main__":
+    main()
