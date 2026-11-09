@@ -280,7 +280,7 @@ cut -f 2 -d'|' c_u > c2
 ## ---- gene with ensemblID; note: 806 x-genes cross chunks --------------------
 echo "##fileformat=VCFv4.2" > f61.vcf
 cut -f 1-8 f6 >> f61.vcf
-bedtools intersect -wao -a f61.vcf -b p50.bed | grep -v '^#' | cut -f 1-5,12 > p1.bed
+bedtools intersect -wao -a f61.vcf -b Genecode_Ann.bed | grep -v '^#' | cut -f 1-5,12 > p1.bed
 datamash -g 1,2,3,4,5 collapse 6 < p1.bed | cut -f 6 > c3
 perl -ne 'print join("\n", split(/\,/,$_));print("\n")' c3 | sort -u | grep -E 'ENSG' > gene.lst
 
