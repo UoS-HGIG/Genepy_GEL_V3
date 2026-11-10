@@ -21,6 +21,7 @@ include { Pre_processing_2 } from "./modules/Pre_pr2"
 include { Pre_processing_3 } from "./modules/Pre_pr3"  
 include { Reatt_Genes } from "./modules/Gene_reattach"
 include { Genepy_score } from "./modules/Genepy"
+include { Make_gene_ann } from "./modules/Gene_ann"
 
 
 
@@ -89,7 +90,9 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
 //    }
       VEP_score(site_qc_cadd15.out.site_qc_out,params.homos_vep,params.vep_plugins,params.pre_scored_snv,params.pre_scored_snv_indx,params.base_site_qc)
       Pre_processing_1(VEP_score.out.vep_out)
-      Pre_processing_2(Pre_processing_1.out.main,params.header_meta,params.Genecode_Ann,params.templates)
+      // Gene assignment BED: core + CRE per gene, built from gene_bed unless Genecode_Ann is set
+      def gene_ann = params.Genecode_Ann ? file(params.Genecode_Ann) : Make_gene_ann(file(params.gene_bed), params.cre_flank)
+      Pre_processing_2(Pre_processing_1.out.main,params.header_meta,gene_ann,params.templates)
       Pre_processing_3(Pre_processing_2.out.main,params.templates)     
       def meta15 = Pre_processing_3.out.meta_files15.collect().map { genes_list -> ["15",params.chr, genes_list] }
       def meta20 = Pre_processing_3.out.meta_files20.collect().map { genes_list -> ["20",params.chr, genes_list] }
