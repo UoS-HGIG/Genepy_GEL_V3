@@ -52,7 +52,7 @@ process Pre_processing_3 {
 
     REAL_PATH1=\$(readlink -f ${template})
     cp \$REAL_PATH1/pre_pro3.sh ./pre_pro3.sh
-    chmod +x ./pre_2.sh
+    chmod +x ./pre_pro3.sh
     ./pre_pro3.sh "${shard_num}" "${subshard_num}"
     """
 }
