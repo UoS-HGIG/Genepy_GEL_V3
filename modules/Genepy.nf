@@ -14,12 +14,13 @@
         - Folder of reassembled cross-shard genes (`dup`)
 
     Outputs:
-        - Six GenePy output files per gene, each sample / score / label:
-            `*_CADD15.meta.txt`, `*_CADD20.meta.txt`                (whole gene, as before)
+        - Four GenePy output files per gene, each sample / score / label:
             `*_CADD15_core.meta.txt`, `*_CADD20_core.meta.txt`      (variants inside the gene boundary)
             `*_CADD15_CRE.meta.txt`, `*_CADD20_CRE.meta.txt`        (variants within cre_flank of the most
                                                                      upstream TSS, outside the gene)
-          published to Genepy_score/<cadd>/, Genepy_score/<cadd>/core/ and Genepy_score/<cadd>/CRE/
+          published to Genepy_score/<cadd>/core/ and Genepy_score/<cadd>/CRE/.
+          No whole-gene score is written: the gene-assignment BED (Genecode_Ann) may be padded
+          beyond core + CRE, so a whole-gene sum would include variants outside both regions.
 
     Key steps:
         1. Copy the GenePy Python script into the task working directory.
@@ -57,8 +58,6 @@ process Genepy_score {
     path(gene_bed)   // BED6 gene boundaries with strand; core and CRE are derived from it
 
     output:
-    path("*_CADD15.meta.txt"), optional: true, emit: cadd15
-    path("*_CADD20.meta.txt"), optional: true, emit: cadd20
     path("*_CADD15_core.meta.txt"), optional: true, emit: cadd15_core
     path("*_CADD15_CRE.meta.txt"),  optional: true, emit: cadd15_cre
     path("*_CADD20_core.meta.txt"), optional: true, emit: cadd20_core
