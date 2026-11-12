@@ -401,7 +401,7 @@ def output_meta_name(file_name: str, cadd: str, region: str = None) -> str:
 def parse_args():
     parser = argparse.ArgumentParser(
         description="GenePy: score one CADD15 .meta file at several CADD cut-offs in one pass, "
-        "for the whole gene and, optionally, its core and CRE regions"
+        "for each gene's core and CRE regions (or the whole gene when no gene BED is given)"
     )
     parser.add_argument("meta", help="per-gene .meta file built at the lowest cut-off (CADD15)")
     parser.add_argument("kary", help="karyotype file (sample IDs with XO/XY karyotype)")
@@ -413,7 +413,8 @@ def parse_args():
         help="CADD PHRED cut-offs to output (default: 15 20)",
     )
     parser.add_argument("--gene-bed", help="gene-boundary BED6 with strand, one row per gene "
-                        "(e.g. gencode_v46_core.bed); enables core and CRE scores")
+                        "(e.g. gencode_v46_core.bed); writes core and CRE scores instead of "
+                        "the whole-gene score")
     parser.add_argument("--cre-flank", type=int, default=2000,
                         help="CRE half-width around the most upstream TSS, in bp (default 2000)")
     return parser.parse_args()
@@ -463,15 +464,18 @@ def main():
             print(f"WARNING: {key}: {both} variant(s) fall in both core and CRE; counted in both",
                   file=sys.stderr)
 
-    # 3. score at each CADD cut-off: whole gene, then each region, from one per-variant matrix
+    # 3. score at each CADD cut-off from one per-variant matrix: core and CRE when a gene BED is
+    #    given (no whole-gene score, as the gene file may also hold variants outside both regions);
+    #    otherwise the whole-gene score, as before
     for cadd in args.cadd:
         scores = get_scores(raw_scores, min_raw=CADD_RAW_THRESHOLDS[cadd])
         if (np.isnan(scores).sum()) < (scores.shape[0]):  # compute metascores if at least 1 variant
             db1 = variant_scores(samples, scores, af, samples_int=samples_int)
-            out_name = output_meta_name(file_name, cadd)
-            np.savetxt(out_name + ".txt", gene_score_table(db1, samples_header, out_name),
-                       fmt="%s", delimiter="\t")
-            print(f"CADD{cadd}: wrote {out_name}.txt")
+            if not masks:  # no gene BED given: whole-gene score only (original behaviour)
+                out_name = output_meta_name(file_name, cadd)
+                np.savetxt(out_name + ".txt", gene_score_table(db1, samples_header, out_name),
+                           fmt="%s", delimiter="\t")
+                print(f"CADD{cadd}: wrote {out_name}.txt")
             for label, m in masks.items():
                 out_name = output_meta_name(file_name, cadd, label)
                 np.savetxt(out_name + ".txt", gene_score_table(db1, samples_header, out_name, m),
