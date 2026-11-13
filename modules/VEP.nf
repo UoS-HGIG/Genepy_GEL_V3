@@ -36,7 +36,7 @@
           CADD scores for indels come from the CADD module.
 */
 process VEP_score {
-  publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
+ // publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
   // maxForks 20
   tag "VEP_score_${shard_num}_${subshard_num}"
   label "VEP_score"
