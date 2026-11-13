@@ -36,7 +36,7 @@
           CADD scores for indels come from the CADD module.
 */
 process VEP_score {
-  publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
+ // publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
   // maxForks 20
   tag "VEP_score_${shard_num}_${subshard_num}"
   label "VEP_score"
@@ -59,13 +59,13 @@ process VEP_score {
 echo "VEP start"
   vep -i "filtered_cadd15.vcf.gz" --offline --assembly GRCh38 --vcf --fork 10 --cache --force_overwrite --pick_allele --allele_number --plugin CADD,"wes.tsv.gz","${pre_scored_snv}" --af_gnomade --af_gnomadg -o "${subshard_num}.p1.vep.vcf" --dir_cache ${homos_vep}  --dir_plugins ${vep_plugins}
 echo "VEP done"
-   bgzip -c "${subshard_num}.p1.vep.vcf" > "${subshard_num}.p1.vep.vcf.gz"
+   bgzip -@ ${task.cpus} -c "${subshard_num}.p1.vep.vcf" > "${subshard_num}.p1.vep.vcf.gz"
    tabix -p vcf "${subshard_num}.p1.vep.vcf.gz"
    tabix -p vcf "${vcfFile}"
  echo "adding vep  annotation output to the original vcf file"
-    bcftools isec -n=2 -w1 -c both -Oz  -o "${subshard_num}.isec_cadd15.vcf.gz" ${vcfFile}  "${subshard_num}.p1.vep.vcf.gz"
+    bcftools isec --threads ${task.cpus} -n=2 -w1 -c both -Oz  -o "${subshard_num}.isec_cadd15.vcf.gz" ${vcfFile}  "${subshard_num}.p1.vep.vcf.gz"
     tabix -p vcf "${subshard_num}.isec_cadd15.vcf.gz"
-    bcftools annotate -a   "${subshard_num}.p1.vep.vcf.gz" -c '+CSQ'  -Oz -o "${subshard_num}.full_cadd15.vcf.gz" "${subshard_num}.isec_cadd15.vcf.gz"
+    bcftools annotate --threads ${task.cpus} -a   "${subshard_num}.p1.vep.vcf.gz" -c '+CSQ'  -Oz -o "${subshard_num}.full_cadd15.vcf.gz" "${subshard_num}.isec_cadd15.vcf.gz"
     bcftools index -f "${subshard_num}.full_cadd15.vcf.gz"
     """
 }
