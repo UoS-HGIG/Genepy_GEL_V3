@@ -31,7 +31,7 @@
 process CADD_score {
   tag "CADD_score_${shard_num}_${subshard_num}"
   label "CADD_score"
-  publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
+ // publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
   maxForks 20
   input:
   tuple val(shard_num), val(subshard_num), val(chr_name), path(vcf_File), path(annotations_cadd)
