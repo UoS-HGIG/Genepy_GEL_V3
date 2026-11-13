@@ -37,7 +37,7 @@
           gnomAD frequency fields, or CADD annotation definitions.
 */
 process Pre_processing_2 {
- // publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
+  publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
   //maxForks 10
   tag "Pre_processing_2_${shard_num}_${subshard_num}"
   label "Pre_processing_2"
