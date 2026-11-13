@@ -33,7 +33,7 @@
           `templates/pre_2.sh`.
 */
 process Pre_processing_3 {
-  publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
+ // publishDir "${params.outDir}/${shard_num}/${subshard_num}", mode: "copy", overwrite: true
   //maxForks 10
   tag "Pre_processing_3_${shard_num}_${subshard_num}"
   label "Pre_processing_3"
