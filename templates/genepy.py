@@ -478,8 +478,12 @@ def main():
                 print(f"CADD{cadd}: wrote {out_name}.txt")
             for label, m in masks.items():
                 out_name = output_meta_name(file_name, cadd, label)
-                np.savetxt(out_name + ".txt", gene_score_table(db1, samples_header, out_name, m),
-                           fmt="%s", delimiter="\t")
+                table = gene_score_table(db1, samples_header, out_name, m)
+                # no variant in this region carried by any sample at this cut-off -> no file
+                if not m.any() or not np.any(table[:, 1].astype(float) != 0):
+                    print(f"CADD{cadd} {label}: no variants in the cohort; no file written")
+                    continue
+                np.savetxt(out_name + ".txt", table, fmt="%s", delimiter="\t")
                 print(f"CADD{cadd} {label}: wrote {out_name}.txt")
             del db1
 

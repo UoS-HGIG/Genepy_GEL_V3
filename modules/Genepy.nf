@@ -19,6 +19,8 @@
             `*_CADD15_CRE.meta.txt`, `*_CADD20_CRE.meta.txt`        (variants within cre_flank of the most
                                                                      upstream TSS, outside the gene)
           published to Genepy_score/<cadd>/core/ and Genepy_score/<cadd>/CRE/.
+          A region with no variants carried by any sample at that cut-off gets no file
+          (rather than a file of zeros), so a missing file means a score of 0 for everyone.
           No whole-gene score is written: the gene-assignment BED (Genecode_Ann) may be padded
           beyond core + CRE, so a whole-gene sum would include variants outside both regions.
 
