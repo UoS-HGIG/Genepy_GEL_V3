@@ -84,7 +84,7 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
       CADD_score(chrx)
       site_qc_cadd15(CADD_score.out.pre_proc_1,params.base_site_qc,params.plugin3)
       site_qc_cadd15.out.site_qc_out
-    .branch { shard, vcf, tsv, tbi, subshard, vcfFile, cadd, cadd_tbi, flag ->
+    .branch { shard, vcf, tsv, tbi, subshard, vcfFile, cadd, flag ->
         run_vep: flag.toString().trim() == '1'
         skip:    true
     }
@@ -93,7 +93,7 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
 //        has_variants: combined_bed.size() > 0
 //        empty: combined_bed.size() == 0
 //    }
-      VEP_score(qc.run_vep.map { it[0..7] },params.homos_vep,params.vep_plugins,params.pre_scored_snv,params.pre_scored_snv_indx,params.base_site_qc)
+      VEP_score(qc.run_vep.map { it[0..6] },params.homos_vep,params.vep_plugins,params.pre_scored_snv,params.pre_scored_snv_indx,params.base_site_qc)
       qc.skip.view { "Skipping VEP (no variants): shard ${it[0]} / subshard ${it[4]}" }
       Pre_processing_1(VEP_score.out.vep_out)
       Pre_processing_2(Pre_processing_1.out.main,params.header_meta,params.Genecode_Ann,params.templates)
