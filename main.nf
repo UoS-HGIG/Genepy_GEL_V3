@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 nextflow.enable.dsl=2
-
+import java.util.zip.GZIPInputStream
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     VALIDATE & PRINT PARAMETER SUMMARY
