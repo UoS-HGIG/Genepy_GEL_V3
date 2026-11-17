@@ -46,7 +46,7 @@ process site_qc_cadd15 {
   path(base_site_qc)
   path(plugin3)
   output:
-  tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile),path("filtered_cadd15.vcf.gz"), emit: site_qc_out
+  tuple val(shard_num), path("p1.vcf"), path("wes.tsv.gz"), path("wes.tsv.gz.tbi"), val(subshard_num) , path(vcfFile),path("filtered_cadd15.vcf.gz"),env(HAS_VARIANTS), emit: site_qc_out
  // path("all_regions.clean.bed")
  // path("siteqc_pass.vcf.gz")
  // path("wes_cadd15.bed")
@@ -115,7 +115,8 @@ bcftools view -R "all_regions.clean.bed" -O z  --threads $task.cpus -o "filtered
 tabix -p vcf "filtered_cadd15a.vcf.gz"
 bcftools isec -c none -n=2 -w1 -O z --threads $task.cpus -o "filtered_cadd15.vcf.gz" "filtered_cadd15a.vcf.gz" "siteqc_pass.multi.vcf.gz"
 tabix -f -p vcf "filtered_cadd15.vcf.gz"
-
+N=\$(bcftools index -n "filtered_cadd15.vcf.gz.tbi" 2>/dev/null || echo 0)
+if [ "\${N:-0}" -gt 0 ]; then HAS_VARIANTS=1; else HAS_VARIANTS=0; fi
 
     """
 }
