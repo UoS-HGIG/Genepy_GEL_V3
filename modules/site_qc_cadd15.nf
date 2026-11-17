@@ -105,9 +105,6 @@ tabix -p vcf "siteqc_pass.multi.vcf.gz"
 echo "site QC file restored to multi-allelic representation"
 ##head "wes_cadd15.bed"
 head ${plugin3}
-bgzip -c "p1.vcf" > "p1.vcf.gz"
-tabix -p vcf "p1.vcf.gz"
-
 cat "wes_cadd15.bed" ${plugin3} > "all_regions.bed"
 head "all_regions.bed"
 echo "All region bed "
@@ -117,7 +114,7 @@ head "all_regions.clean.bed"
 bcftools view -R "all_regions.clean.bed" -O z  --threads $task.cpus -o "filtered_cadd15a.vcf.gz" "p1.vcf.gz"
 tabix -p vcf "filtered_cadd15a.vcf.gz"
 bcftools isec -c none -n=2 -w1 -O z --threads $task.cpus -o "filtered_cadd15.vcf.gz" "filtered_cadd15a.vcf.gz" "siteqc_pass.multi.vcf.gz"
-tabix -p vcf "filtered_cadd15.vcf.gz"
+tabix -f -p vcf "filtered_cadd15.vcf.gz"
 
 
     """
