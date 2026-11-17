@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 nextflow.enable.dsl=2
-import java.util.zip.GZIPInputStream
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     VALIDATE & PRINT PARAMETER SUMMARY
@@ -12,22 +12,7 @@ import java.util.zip.GZIPInputStream
 def checkPathParamList = [ 
     params.shard_path
 ]
-def hasVariants(f) {
-    def file = f.toFile()
-    if( !file.exists() || file.length() == 0 ) return false
-    boolean found = false
-    try {
-        new GZIPInputStream(new FileInputStream(file)).withReader('UTF-8') { r ->
-            String line
-            while( !found && (line = r.readLine()) != null ) {
-                if( line && !line.startsWith('#') ) found = true
-            }
-        }
-    } catch( Exception e ) {
-        return false
-    }
-    return found
-} 
+
 include { CADD_score } from "./modules/CADD"  
 include { site_qc_cadd15 } from "./modules/site_qc_cadd15"
 include { VEP_score } from "./modules/VEP"  
@@ -99,16 +84,16 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
       CADD_score(chrx)
       site_qc_cadd15(CADD_score.out.pre_proc_1,params.base_site_qc,params.plugin3)
       site_qc_cadd15.out.site_qc_out
-      .branch { shard, vcf, tsv, tbi, subshard, vcfFile, cadd ->
-        has_variants: hasVariants(cadd)
-        empty:        true
+    .branch { shard, vcf, tsv, tbi, subshard, vcfFile, cadd, cadd_tbi, flag ->
+        run_vep: flag.toString().trim() == '1'
+        skip:    true
     }
-    .set { qc_checked }
+    .set { qc }
 //      qc_split = site_qc_cadd15.out.site_qc_out.branch { shard_num, p1, wes, tbi, subshard_num, vcfFile, combined_bed ->
 //        has_variants: combined_bed.size() > 0
 //        empty: combined_bed.size() == 0
 //    }
-      VEP_score(qc_checked.has_variants,params.homos_vep,params.vep_plugins,params.pre_scored_snv,params.pre_scored_snv_indx,params.base_site_qc)
+      VEP_score(qc.run_vep.map { it[0..7] },params.homos_vep,params.vep_plugins,params.pre_scored_snv,params.pre_scored_snv_indx,params.base_site_qc)
       Pre_processing_1(VEP_score.out.vep_out)
       Pre_processing_2(Pre_processing_1.out.main,params.header_meta,params.Genecode_Ann,params.templates)
       Pre_processing_3(Pre_processing_2.out.main,params.templates)     
