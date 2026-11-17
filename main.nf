@@ -94,6 +94,7 @@ chrx = Channel.fromPath(shard_path_pattern, checkIfExists: true)
 //        empty: combined_bed.size() == 0
 //    }
       VEP_score(qc.run_vep.map { it[0..7] },params.homos_vep,params.vep_plugins,params.pre_scored_snv,params.pre_scored_snv_indx,params.base_site_qc)
+      qc.skip.view { "Skipping VEP (no variants): shard ${it[0]} / subshard ${it[4]}" }
       Pre_processing_1(VEP_score.out.vep_out)
       Pre_processing_2(Pre_processing_1.out.main,params.header_meta,params.Genecode_Ann,params.templates)
       Pre_processing_3(Pre_processing_2.out.main,params.templates)     
