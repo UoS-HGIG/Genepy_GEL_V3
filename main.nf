@@ -112,7 +112,8 @@ def flatDups  = Reatt_Genes.out.dup.flatten()
 def metas = flatMetas.map { p ->
     def fullKey = p.toString().tokenize('/').find { it.startsWith('metafiles') }
     def baseKey = fullKey.replaceAll(/(_\d+)+$/, '')  
-    tuple(baseKey, p)                                
+    def sid     = fullKey.substring(baseKey.length()).replaceFirst(/^_/, '')   // e.g. "19_93"  
+    tuple(baseKey, p,sid)                                
 }
 
 
@@ -125,16 +126,17 @@ dups.collect()
 
 def met_ = metas
     .combine(dups)                       // produce all pairs
-    .filter { m -> m[0] == m[2] }     // keep only matches on baseKey
+    .filter { m -> m[0] == m[3] }     // keep only matches on baseKey
     .map { m ->                       // 
         def key         = m[0]
         def folder_path = m[1]
-        def dup_path    = m[3]
+        def sid         = m[2]
+        def dup_path    = m[4]
 
         def cadd_score = (key == 'metafiles20') ? '20' :
                          (key == 'metafiles15') ? '15' : '15'
 
-        tuple(folder_path, params.chr, cadd_score, params.genepy_py,params.kary, dup_path)
+        tuple(folder_path, params.chr, cadd_score, params.genepy_py,params.kary, dup_path,sid)
     }
     .view()
      // genepy.py now writes CADD15 and CADD20 from the CADD15 matrices in one pass,
