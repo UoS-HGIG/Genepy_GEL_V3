@@ -49,11 +49,11 @@ process Genepy_score {
             def m = (f =~ /_CADD(\d+)(?:_(core|CRE))?\.meta\.txt$/)
             m ? (m[0][2] ? "${m[0][1]}/${m[0][2]}/${f}" : "${m[0][1]}/${f}") : f
         }
-    tag "Genepy_score_${chr}"
+    tag "Genepy_score_${chr}_${sid}"
     label "Genepy_score"
     maxForks 20
     input:
-    tuple path(path1),val(chr),val(cadd),path(genepy),path(kary),path(dup)
+    tuple path(path1),val(chr),val(cadd),path(genepy),path(kary),path(dup),val(sid)
     path(gene_bed)   // BED6 gene boundaries with strand; core and CRE are derived from it
 
     output:
