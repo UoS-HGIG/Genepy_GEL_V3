@@ -1,0 +1,140 @@
+trace.overwrite = true
+manifest {
+    name        = 'genepy-pipeline'
+    description = 'A Nextflow pipeline to calculate Genepy scores from aggregated GVCF files'
+    //homepage    = 'https://github.com/UoS-HGIG/'
+    mainScript  = 'main.nf'
+    //workflowType = 'data-processing'
+}
+  
+params {
+chr=""
+outDir = "Results"
+multiallelic_shards_bed = ""
+gnomad_joint_dir   = ""
+base_site_qc    = ""
+wg = "/tools/aws-workspace-apps/CADD/1.6/CADD-scripts/data/GRCh38_v1.6/no_anno"
+shard_path = ""
+vcf = ""
+kary = ""
+plugin3= ""
+ccds_region= "${projectDir}/templates/CCDS_25_extended.bed"
+annotations_cadd = ""
+homos_vep = "/nas/weka.gel.zone/pgen_public_data_resources/vep_resources/VEP111/"
+bed_int = "${projectDir}/templates/CCDS_hg38_pad25_sorted.bed"
+// containers
+cadd_  = 'quay.io/parsboy1987/cadd1.6_ens95:v2'
+//vep_  =  'docker://hgig/vep115_bcftools:latest'
+pyR =  'quay.io/parsboy1987/genepy:v1'
+vep_ = 'quay.io/parsboy1987/vep:114-bcftools-tabix-fix2'
+//tmp="/re_scratch/re_gecip/machine_learning/inazari/nextflow.G"
+// vep plugins
+pre_scored_snvs = "/tools/aws-workspace-apps/CADD/1.6/CADD-scripts/data/GRCh38_v1.6/no_anno/whole_genome_SNVs.tsv.gz"
+pre_scored_indels = "/tools/aws-workspace-apps/CADD/1.6/CADD-scripts/data/GRCh38_v1.6/no_anno/gnomad.genomes.r3.0.indel.tsv.gz"
+vep_plugins= "${projectDir}/templates/Plugins"
+cadd_data= "/tools/aws-workspace-apps/CADD/1.6/CADD-scripts/data/"
+pre_scored_snvs_indx=""
+pre_scored_indels_indx=""
+//
+header_meta = "${projectDir}/header.meta_org"
+genepy_py = "${projectDir}/templates/genepy.py"
+// gene chunks
+chunk_size = 1000
+Genecode_Ann = ""
+// GenePy core/CRE scores: one BED6 of gene boundaries (with strand; name holds the Ensembl gene ID).
+// core = gene boundary; CRE = +/- cre_flank bp around the most upstream TSS, minus the gene.
+gene_bed  = "${projectDir}/templates/gencode_v46_core.bed"
+cre_flank = 2000
+templates="${projectDir}/templates"
+ethnicity = "/mnt/session_data/mounted-data-readonly/Ethnicity/ethnicity.txt"
+//gene_code_bed = "${projectDir}/templates/gencode.v45.annotation_2.bed"
+xgen_bed= "${projectDir}/templates/xgen_plus_spikein.GRCh38.bed"
+IBD_gwas_bed= "${projectDir}/templates/IBD_gwas_locus_0927.bed"
+//Genecode_p50_bed= "${projectDir}/templates/gencode.v43.basic.p50.bed"
+}
+def shard_dir_name = params.shard_path ? params.shard_path.tokenize('/')[-1] : 'shard-unknown'
+ env {
+     HOME="$PWD"
+}
+
+report {
+    enabled = true
+    file = "${params.chr}/Report.html"
+    overwrite = true
+}
+
+timeline {
+    enabled = true
+    file = "${params.chr}/Timeline.html"
+    overwrite = true
+}
+
+process {
+    maxForks = 30
+    maxRetries = 3 
+    time = 24.h
+    withLabel: CADD_score {
+        cpus = { 4 * task.attempt }  // Doubles CPU on each retry
+        memory = { 8.GB * task.attempt }// Doubles memory on each retry
+        maxRetries = 3                       // Retry up to 3 times
+        errorStrategy = { task.attempt <= 3 ? 'retry' : 'terminate' }
+        container = params.cadd_
+        containerOptions = '-v ${params.vcf}'
+    }
+    withLabel: site_qc_cadd15 {
+        cpus = { 4 * task.attempt }  // Doubles CPU on each retry
+        memory = { 16.GB * task.attempt }// Doubles memory on each retry
+        maxRetries = 3                       // Retry up to 3 times
+        errorStrategy = { task.attempt <= 3 ? 'retry' : 'terminate' }
+        container = params.cadd_
+        containerOptions = '-v ${params.vcf}'
+        maxForks = 30
+    }
+    withLabel: Genepy_score {
+        cpus = 8                           // genepy.py is single-threaded; only memory grows on retry
+        memory = { 32.GB * task.attempt }  // Doubles memory on each retry
+        errorStrategy = { task.attempt <= 3 ? 'retry' : 'terminate' }
+        container = params.pyR
+        maxForks = 20
+    }
+    withLabel: VEP_score {
+        cpus = { 4 * task.attempt }  // Doubles CPU on each retry
+        memory = { 8.GB * task.attempt }  // Doubles memory on each retry
+        errorStrategy = { task.attempt <= 3 ? 'retry' : 'terminate' }
+        container = params.vep_
+        containerOptions = '-u root'
+    }
+    withLabel: Pre_processing_1 {
+        cpus =  { 4 * task.attempt }  // Doubles CPU on each retry
+        memory = { 8.GB * task.attempt }  // Doubles memory on each retry
+        errorStrategy = { task.attempt <= 3 ? 'retry' : 'terminate' }
+        maxForks = 20
+        container = params.cadd_
+        containerOptions = '-u root'
+    }
+    withLabel: Pre_processing_2 {
+        cpus = { 4 * task.attempt }  // Doubles CPU on each retry
+        memory = { 8.GB * task.attempt }  // Doubles memory on each retry
+        errorStrategy = { task.attempt <= 3 ? 'retry' : 'terminate' }
+        container = params.cadd_
+        maxForks = 20
+        containerOptions = '-u root'
+    }
+    withLabel: Pre_processing_3 {
+        cpus = { 4 * task.attempt }  // Doubles CPU on each retry
+        memory = { 8.GB * task.attempt }  // Doubles memory on each retry
+        errorStrategy = { task.attempt <= 3 ? 'retry' : 'terminate' }
+        container = params.cadd_
+        maxForks = 20
+        containerOptions = '-u root'
+    } 
+   withLabel: Reatt_Genes {
+        cpus = { 4 * task.attempt }  // Doubles CPU on each retry
+        memory = { 8.GB * task.attempt }  // Doubles memory on each retry
+        errorStrategy = { task.attempt <= 3 ? 'retry' : 'terminate' }
+        container = params.cadd_
+        maxForks = 10
+        containerOptions = '-u root'
+    }
+
+}
